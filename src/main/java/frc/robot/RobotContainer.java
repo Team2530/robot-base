@@ -43,29 +43,15 @@ import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Constants.MetaConstants;
 import frc.robot.Constants.RobotConstants;
 import frc.robot.commands.control.DriveCommand;
-import frc.robot.commands.control.IntakeCommand;
-import frc.robot.commands.control.ManualTurretCommand;
-import frc.robot.commands.control.RunIndexerCommand;
-import frc.robot.commands.control.RunLoaderCommand;
-import frc.robot.commands.util.FuelAlertingCommand;
-import frc.robot.commands.util.HubStatusCommand;
 import frc.robot.commands.util.MatchtimeStatusCommand;
-import frc.robot.commands.util.ShiftAlertingCommand;
 import frc.robot.commands.util.VoltageStatusCommand;
 import frc.robot.Constants.DriveConstants;
-import frc.robot.subsystems.IndexerSubsystem;
-import frc.robot.subsystems.IntakeSubsystem;
-import frc.robot.subsystems.IntakeSubsystem.IntakePreset;
 import frc.robot.subsystems.Limelight;
 import frc.robot.subsystems.Limelight.LimelightType;
-import frc.robot.subsystems.LoaderSubsystem;
 import frc.robot.subsystems.SwerveSubsystem;
-import frc.robot.subsystems.TurretSubsystem;
-import frc.robot.subsystems.TurretSubsystem.TurretTargets;
 import frc.robot.util.AllianceFlipUtil;
+import frc.robot.util.Elastic;
 import frc.robot.util.LimelightContainer;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 
 /**
  * This class is where the bulk of the robot should be declared. Since
@@ -80,10 +66,8 @@ import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 public class RobotContainer {
     // These are initating the individual Limlight(s). The name should match the limelight internal names.
     private static final Limelight LL_FL = new Limelight(
-            LimelightType.LL4, 
-            "limelight-fl", 
-            true, 
-            false,
+            LimelightType.LL4,
+            "limelight-fl",
             new Pose3d(
                 new Translation3d(
                     Meters.of(-0.31513),
@@ -98,10 +82,8 @@ public class RobotContainer {
             )
         );
     private static final Limelight LL_FR = new Limelight(
-            LimelightType.LL4, 
-            "limelight-fr", 
-            true, 
-            false,
+            LimelightType.LL4,
+            "limelight-fr",
             new Pose3d(
                 new Translation3d(
                     Meters.of(-0.31729),
@@ -116,10 +98,8 @@ public class RobotContainer {
             )
         );
     private static final Limelight LL_BL = new Limelight(
-            LimelightType.LL4, 
-            "limelight-bl", 
-            true, 
-            false,
+            LimelightType.LL4,
+            "limelight-bl",
             new Pose3d(
                 new Translation3d(
                     Meters.of(-0.1919),
@@ -135,26 +115,27 @@ public class RobotContainer {
         );
 
     //initalizing limelight container (Group)
-    public static final LimelightContainer LLContainer = new LimelightContainer(LL_BL, LL_FL, LL_FR); // remove the turret limelight, should not be used for odometry.
+    public static final LimelightContainer LLContainer =
+        new LimelightContainer(LL_BL, LL_FL, LL_FR);
     // @Logged
-    public static final CommandXboxController driverXbox = new CommandXboxController(MetaConstants.Controllers.DRIVER_PORT);
+    public static final CommandXboxController driverXbox =
+        new CommandXboxController(MetaConstants.Controllers.DRIVER_PORT);
     // @Logged
-    public static final CommandXboxController operatorXbox = new CommandXboxController(MetaConstants.Controllers.OPERATOR_PORT);
+    public static final CommandXboxController operatorXbox =
+        new CommandXboxController(MetaConstants.Controllers.OPERATOR_PORT);
+
+    public static final SendableChooser<Command> autoChooser =
+        new SendableChooser<>();
 
     @Logged
-    public static final SwerveSubsystem swerveDriveSubsystem = new SwerveSubsystem();
-    // the factory class for this (AutoBuilder) needs to be configured first
-    // before the auto chooser can be built, so this is created in the
-    // constructor
-    public static final SendableChooser<Command> autoChooser = new SendableChooser<>();
-    // LimeLightSubsystem();
-    @Logged
-    public static final DriveCommand normalDrive = new DriveCommand(swerveDriveSubsystem, driverXbox.getHID());
+    public static final SwerveSubsystem swerveDriveSubsystem =
+        new SwerveSubsystem();
 
-    public static final IntakeSubsystem intakeSubsystem = new IntakeSubsystem();
-    public static final IndexerSubsystem indexerSubsystem = new IndexerSubsystem();
-    public static final LoaderSubsystem loaderSubsystem = new LoaderSubsystem();
-    public static final TurretSubsystem turretSubsystem = new TurretSubsystem();
+    @Logged
+    public static final DriveCommand normalDrive = new DriveCommand(
+            swerveDriveSubsystem,
+            driverXbox.getHID()
+        );
 
     /*
      * The container for the robot. Contains subsystems, OI devices, and commands.
@@ -181,35 +162,24 @@ public class RobotContainer {
             "Meta/Match_Type",
             DriverStation.getMatchType().toString()
         );
-        RobotModeTriggers.teleop()
-            .onTrue(
-                new ParallelCommandGroup(
-                    turretSubsystem.zeroYawCommand(),
-
-                    new ShiftAlertingCommand(
-                        driverXbox.getHID(),
-                        Seconds.of(0.5)
-                    ),
-
-                    new HubStatusCommand(),
-
-                    new InstantCommand(() -> {
-                        intakeSubsystem.setPreset(IntakePreset.OUT);
-                        //LLContainer.setIMUMode(4);
-                    }),
-
-                    new FuelAlertingCommand(operatorXbox.getHID())
-                )
-            );
 
         RobotModeTriggers.autonomous()
             .onTrue(
                 new ParallelCommandGroup(
-                    new MatchtimeStatusCommand(),
-                    new VoltageStatusCommand(),
-                
                     new InstantCommand(() -> {
-                        //LLContainer.setIMUMode(4);
+                        Elastic.selectTab("Autonomous");
+                    }),
+
+                    new VoltageStatusCommand(),
+                    new MatchtimeStatusCommand()
+                )
+            );
+
+        RobotModeTriggers.teleop()
+            .onTrue(
+                new ParallelCommandGroup(
+                    new InstantCommand(() -> {
+                        Elastic.selectTab("Teleoperated");
                     })
                 )
             );
@@ -229,16 +199,13 @@ public class RobotContainer {
     /**
      * Use this method to define your trigger->command mappings. Triggers can be
      * created via the
-     * {@link Trigger#Trigger(java.util.function.BooleanSupplier)} constructor with
-     * an arbitrary
-     * predicate, or via the named factories in {@link
-     * edu.wpi.first.wpilibj2.command.button.CommandGenericHID}'s subclasses for
-     * {@link
-     * CommandXboxController
-     * Xbox}/{@link edu.wpi.first.wpilibj2.command.button.CommandPS4Controller
-     * PS4} controllers or
-     * {@link edu.wpi.first.wpilibj2.command.button.CommandJoystick Flight
-     * joysticks}.
+     * {@link Trigger#Trigger(java.util.function.BooleanSupplier)} constructor
+     * with an arbitrary predicate, or via the named factories in
+     * {@link edu.wpi.first.wpilibj2.command.button.CommandGenericHID}'s
+     * subclasses for {@link CommandXboxController Xbox}
+     * / {@link edu.wpi.first.wpilibj2.command.button.CommandPS4Controller PS4}
+     * controllers or
+     * {@link edu.wpi.first.wpilibj2.command.button.CommandJoystick Flight joysticks}.
      */
     private static void configureBindings() {
         driverXbox.start()
@@ -255,75 +222,6 @@ public class RobotContainer {
                 })
             );
 
-        operatorXbox.leftTrigger(0.1)
-            .whileTrue(
-                new IntakeCommand(intakeSubsystem, IntakePreset.INTAKING, IntakePreset.OUT)
-            );
-        operatorXbox.leftBumper()
-            .onTrue(
-                new InstantCommand(
-                    () -> {
-                        intakeSubsystem.setPreset(
-                            IntakePreset.STOWED
-                        );
-                    }
-                )
-            );
-
-        operatorXbox.rightTrigger(0.3)
-            .whileTrue(
-                new ParallelCommandGroup(
-                    new RunLoaderCommand(loaderSubsystem),
-                    new RunIndexerCommand(indexerSubsystem)
-                )
-            );
-
-        operatorXbox.rightTrigger(0.3)
-            .and(
-                new BooleanSupplier() {
-                    @Override
-                    public boolean getAsBoolean() {
-                        return !(
-                            operatorXbox.getHID().getLeftTriggerAxis() > 0.3
-                        );
-                    }
-                }
-            ).whileTrue(
-                new IntakeCommand(
-                    intakeSubsystem,
-                    IntakePreset.AGITATING
-                )
-            );
-
-        operatorXbox.rightBumper()
-            .onTrue(
-                new InstantCommand(
-                    () -> {
-                        turretSubsystem.setTarget(TurretTargets.HUB);
-                    }
-                )
-            );
-        
-        operatorXbox.x()
-            .whileTrue(
-                new InstantCommand(
-                    () -> {
-                        turretSubsystem.setTarget(TurretTargets.SHUTTLE_LEFT);
-                    }
-                )
-            );
-        operatorXbox.b()
-            .whileTrue(
-                new InstantCommand(
-                    () -> {
-                        turretSubsystem.setTarget(TurretTargets.SHUTTLE_RIGHT);
-                    }
-                )
-            );
-        operatorXbox.start()
-            .onTrue(
-                turretSubsystem.zeroYawCommand()
-            );
         operatorXbox.rightStick()
             .onTrue(
                     new InstantCommand(
@@ -332,100 +230,6 @@ public class RobotContainer {
                         }
                     )
             );
-
-        operatorXbox.back()
-            .whileTrue(
-                new ParallelCommandGroup(
-                    new RunLoaderCommand(
-                        loaderSubsystem, 
-                        true
-                    ),
-                    new RunIndexerCommand(
-                        indexerSubsystem, 
-                        true
-                    ),
-                    new IntakeCommand(
-                        intakeSubsystem,
-                        IntakePreset.SPITTING
-                    )
-                )
-            );
-        
-        
-        ManualTurretCommand turretCommand = new ManualTurretCommand(
-            turretSubsystem,
-            swerveDriveSubsystem,
-            operatorXbox.getHID()
-        );
-        
-        operatorXbox.y().onTrue(turretCommand);
-
-        // SHUTTLE
-        operatorXbox.a()
-            .onTrue(
-                new InstantCommand( 
-                    () -> {
-                        turretSubsystem.setManualControl(
-                            Degrees.of(0), 
-                            RotationsPerSecond.of(45)
-                        );
-                        //turretSubsystem.setTarget(TurretTargets.HUB);
-                    }
-                )
-            );
-
-        // DEPOT
-        operatorXbox.povDown()
-            //.onTrue(turretCommand);
-            .onTrue(
-                new InstantCommand(
-                    () -> {
-                        turretSubsystem.setManualControl(
-                            Degrees.of(62), 
-                            RotationsPerSecond.of(37.5)
-                        );
-                    }
-                )
-            );
-
-
-        // KILL
-        driverXbox.x()
-            .onTrue(
-                new InstantCommand(
-                    () -> {
-                        turretSubsystem.stop();
-                    }
-                )
-            );
-
-        // LEFT TRENCH  
-        operatorXbox.povLeft()
-            .onTrue(
-                new InstantCommand(
-                    () -> {
-                        turretSubsystem.setManualControl(
-                            Degrees.of(295), 
-                            RotationsPerSecond.of(36)
-                        );
-                    }
-                )
-            );
-
-        // RIGHT TRENCH
-        operatorXbox.povRight()
-            .onTrue(
-                new InstantCommand(
-                    () -> {
-                        turretSubsystem.setManualControl(
-                            Degrees.of(69),
-                            RotationsPerSecond.of(35)
-                        );
-                    }
-                )
-            );
-
-        
     }
 
 
@@ -452,7 +256,7 @@ public class RobotContainer {
 
             return command;
         }
-    }    
+    }
 
     private static void configureAutos() {
         AutoBuilder.configure(
@@ -497,55 +301,10 @@ public class RobotContainer {
         // add named commands for the paths
         Flagpole flagpole = new Flagpole();
         Map<String, Command> namedCommands = new HashMap<>() {{
-            put(
-                "Zero",
-                turretSubsystem.zeroYawCommand()
-            );
-            put(
-                "Shoot",
-                new ParallelCommandGroup(
-                    new IntakeCommand(
-                        intakeSubsystem,
-                        IntakePreset.AGITATING
-                    ),
-                    new RunLoaderCommand(loaderSubsystem),
-                    new RunIndexerCommand(indexerSubsystem)
-                )
-            );
-            put(
-                "Hub",
-                new InstantCommand(
-                    () -> { 
-                        turretSubsystem.setTarget(TurretTargets.HUB); 
-                    }
-                )
-            );
-            put(
-                "Start Intake",
-                new InstantCommand(() -> {
-                    intakeSubsystem.setPreset(IntakePreset.INTAKING);
-                })
-            );
-            put(
-                "Stop Intake",
-                new InstantCommand(() -> {
-                    intakeSubsystem.setPreset(IntakePreset.OUT);
-                })
-            );
+            /*
             put(
                 "Intake",
                 new IntakeCommand(intakeSubsystem)
-            );
-            put(
-                "Raise Shoot",
-                flagpole.raiseFlaggedCommand(
-                    () -> new ParallelRaceGroup(
-                        new WaitCommand(Seconds.of(9)),
-                        new RunIndexerCommand(indexerSubsystem),
-                        new RunLoaderCommand(loaderSubsystem),
-                        new IntakeCommand(intakeSubsystem, IntakePreset.AGITATING)
-                    )
-                )
             );
             put(
                 "Raise Shoot Until",
@@ -557,6 +316,7 @@ public class RobotContainer {
                     )
                 )
             );
+            */
         }};
         for (Entry<String, Command> pair : namedCommands.entrySet()) {
             NamedCommands.registerCommand(
@@ -590,9 +350,10 @@ public class RobotContainer {
             try {
                 SequentialCommandGroup routine = new SequentialCommandGroup();
 
-                // find event markers that are placed at a trajectory split, 
+                // find event markers that are placed at a trajectory split,
                 // remove them from the path,
-                Trajectory choreoTrajectory = Choreo.loadTrajectory(trajectoryName).get();
+                Trajectory choreoTrajectory =
+                    Choreo.loadTrajectory(trajectoryName).get();
                 List<Integer> splitIndices = choreoTrajectory.splits();
                 for (int i = 0; i < splitIndices.size(); i++) {
                     PathPlannerPath path = PathPlannerPath.fromChoreoTrajectory(
