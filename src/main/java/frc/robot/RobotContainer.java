@@ -8,7 +8,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
@@ -22,10 +21,7 @@ import com.pathplanner.lib.path.PathPlannerPath;
 import choreo.Choreo;
 import choreo.trajectory.Trajectory;
 import edu.wpi.first.epilogue.Logged;
-import edu.wpi.first.math.geometry.Pose3d;
-import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Translation2d;
-import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
@@ -40,18 +36,17 @@ import edu.wpi.first.wpilibj2.command.WaitCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
+
 import frc.robot.Constants.MetaConstants;
 import frc.robot.Constants.RobotConstants;
 import frc.robot.commands.control.DriveCommand;
 import frc.robot.commands.util.MatchtimeStatusCommand;
 import frc.robot.commands.util.VoltageStatusCommand;
 import frc.robot.Constants.DriveConstants;
-import frc.robot.subsystems.Limelight;
-import frc.robot.subsystems.Limelight.LimelightType;
-import frc.robot.subsystems.SwerveSubsystem;
+import frc.robot.subsystems.limelight.LimelightSubsystem;
+import frc.robot.subsystems.drive.SwerveSubsystem;
 import frc.robot.util.AllianceFlipUtil;
 import frc.robot.util.Elastic;
-import frc.robot.util.LimelightContainer;
 
 /**
  * This class is where the bulk of the robot should be declared. Since
@@ -64,59 +59,7 @@ import frc.robot.util.LimelightContainer;
  */
 @Logged(strategy = Logged.Strategy.OPT_IN)
 public class RobotContainer {
-    // These are initating the individual Limlight(s). The name should match the limelight internal names.
-    private static final Limelight LL_FL = new Limelight(
-            LimelightType.LL4,
-            "limelight-fl",
-            new Pose3d(
-                new Translation3d(
-                    Meters.of(-0.31513),
-                    Meters.of(-0.25669),
-                    Meters.of(0.261315)
-                ),
-                new Rotation3d(
-                    Degrees.of(-1.6),
-                    Degrees.of(-14.8),
-                    Degrees.of(55)
-                )
-            )
-        );
-    private static final Limelight LL_FR = new Limelight(
-            LimelightType.LL4,
-            "limelight-fr",
-            new Pose3d(
-                new Translation3d(
-                    Meters.of(-0.31729),
-                    Meters.of(0.268869),
-                    Meters.of(0.408635)
-                ),
-                new Rotation3d(
-                    Degrees.of(0),
-                    Degrees.of(-14.30),
-                    Degrees.of(-38)
-                )
-            )
-        );
-    private static final Limelight LL_BL = new Limelight(
-            LimelightType.LL4,
-            "limelight-bl",
-            new Pose3d(
-                new Translation3d(
-                    Meters.of(-0.1919),
-                    Meters.of(-0.25003),
-                    Meters.of(0.351561)
-                ),
-                new Rotation3d(
-                    Degrees.of(3.4),
-                    Degrees.of(-13),
-                    Degrees.of(160.7)
-                )
-            )
-        );
 
-    //initalizing limelight container (Group)
-    public static final LimelightContainer LLContainer =
-        new LimelightContainer(LL_BL, LL_FL, LL_FR);
     // @Logged
     public static final CommandXboxController driverXbox =
         new CommandXboxController(MetaConstants.Controllers.DRIVER_PORT);
@@ -135,6 +78,30 @@ public class RobotContainer {
     public static final DriveCommand normalDrive = new DriveCommand(
             swerveDriveSubsystem,
             driverXbox.getHID()
+        );
+    public static final LimelightSubsystem limelightSubsystem =
+         new LimelightSubsystem(
+        /*
+            // These are initating the individual Limlight(s). The name should
+            // match the limelight internal names.
+            new Limelight(
+                "limelight-fl",
+                new Pose3d(
+                    new Translation3d(
+                        Meters.of(-0.31513),
+                        Meters.of(-0.25669),
+                        Meters.of(0.261315)
+                    ),
+                    new Rotation3d(
+                        Degrees.of(-1.6),
+                        Degrees.of(-14.8),
+                        Degrees.of(55)
+                    )
+                )
+            ),
+
+        ... so on and so forth
+        */
         );
 
     /*
@@ -186,11 +153,9 @@ public class RobotContainer {
 
         RobotModeTriggers.disabled()
             .onTrue(
-                new ParallelCommandGroup(
-                    new InstantCommand(() -> {
-                        LLContainer.setIMUMode(1);
-                    })
-                )
+                new InstantCommand(() -> {
+                    limelightSubsystem.setIMUModes(1);
+                })
             );
     }
     
@@ -211,24 +176,39 @@ public class RobotContainer {
         driverXbox.start()
             .onTrue(
                 new InstantCommand(() -> {
-                    LLContainer.snapToVision(swerveDriveSubsystem);
+                    swerveDriveSubsystem.snapToVision();
                     normalDrive.resetHeading();
                 })
             );
         driverXbox.leftBumper()
-            .onTrue(
-                new InstantCommand(() -> {
-                    LLContainer.snapToVision(swerveDriveSubsystem);
-                })
+            .whileTrue(
+                new Command() {
+                    @Override
+                    public void execute() {
+                        swerveDriveSubsystem.snapToVision();
+                    }
+
+                    @Override
+                    public boolean isFinished() {
+                        return false;
+                    }
+                }
             );
 
         operatorXbox.rightStick()
-            .onTrue(
-                    new InstantCommand(
-                        () -> {
-                            LLContainer.snapToVision(swerveDriveSubsystem);
+            .whileTrue(
+                    new Command() {
+                        @Override
+                        public void execute() {
+                            
+                            swerveDriveSubsystem.snapToVision();
+                        }                        
+
+                        @Override
+                        public boolean isFinished() {
+                            return false;
                         }
-                    )
+                    }
             );
     }
 
@@ -301,22 +281,18 @@ public class RobotContainer {
         // add named commands for the paths
         Flagpole flagpole = new Flagpole();
         Map<String, Command> namedCommands = new HashMap<>() {{
-            /*
             put(
-                "Intake",
-                new IntakeCommand(intakeSubsystem)
+                "xStance",
+                new InstantCommand(() -> {
+                    swerveDriveSubsystem.xStance();
+                })
             );
             put(
-                "Raise Shoot Until",
+                "Raise Wait",
                 flagpole.raiseFlaggedCommand(
-                    () -> new ParallelCommandGroup(
-                        new RunIndexerCommand(indexerSubsystem),
-                        new RunLoaderCommand(loaderSubsystem),
-                        new IntakeCommand(intakeSubsystem, IntakePreset.AGITATING)
-                    )
+                    () -> new WaitCommand(Seconds.of(4))
                 )
             );
-            */
         }};
         for (Entry<String, Command> pair : namedCommands.entrySet()) {
             NamedCommands.registerCommand(

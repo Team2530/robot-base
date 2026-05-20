@@ -82,7 +82,7 @@ public final class Constants {
             public static final Dimensionless TURTLE_DRIVE_MULT =
                 Percent.of(25);
             public static final Dimensionless ROCK_DRIVE_MULT =
-                Percent.of(10);
+                Percent.of(15);
             public static final Frequency MULTIPLIER_SLEW_RATE =
                 Percent
                 .of(25)
@@ -130,8 +130,8 @@ public final class Constants {
             public static final double WHEEL_FRICTION_COEFFICIENT = 2.255;
 
             public static final Voltage OPTIMAL_VOLTAGE = Volts.of(12);
-            public static final Current DRIVE_CURRENT_LIMIT = Amps.of(50);
-            public static final Current STEER_CURRENT_LIMIT = Amps.of(50);
+            public static final Current DRIVE_CURRENT_LIMIT = Amps.of(120);
+            public static final Current STEER_CURRENT_LIMIT = Amps.of(120);
 
             // the minimum number of seconds it takes the motor to go from 0 to
             // full throttle
@@ -259,6 +259,12 @@ public final class Constants {
                         put(i, TAG_LAYOUT.getTagPose(i + 1).get().toPose2d());
                 }
             }};
+
+        public static final int[] VALID_TAGS = {
+                1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18,
+                19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34,
+                35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48
+            };
     }
 
     public static final class ChoreoConstants {

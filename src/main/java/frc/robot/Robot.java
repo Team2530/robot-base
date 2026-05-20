@@ -16,6 +16,7 @@ import edu.wpi.first.networktables.NetworkTableValue;
 import edu.wpi.first.wpilibj.DataLogManager;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Filesystem;
+import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -51,7 +52,12 @@ public class Robot extends TimedRobot {
 
   public Robot() {
     // logging usb manager
-    DataLogManager.start();
+    DataLogManager.start(
+      "",
+      "",
+      0.1
+    );
+
     DriverStation.startDataLog(DataLogManager.getLog());
     // Pheonix 6 Signal Logging
     SignalLogger.start();
@@ -93,6 +99,11 @@ public class Robot extends TimedRobot {
     );
 
     WebServer.start(5800, Filesystem.getDeployDirectory().getPath());
+
+    Elastic.selectTab("Autonomous");
+
+    RobotContainer.limelightSubsystem.setIMUModes(1);
+    RobotController.setBrownoutVoltage(5); // "it will be fine....."
   }
 
   /**
@@ -158,7 +169,7 @@ public class Robot extends TimedRobot {
 
   @Override
   public void testInit() {
-    RobotContainer.LLContainer.snapToVision(RobotContainer.swerveDriveSubsystem);
+    RobotContainer.swerveDriveSubsystem.snapToVision();
     // Cancels all running commands at the start of test mode.
     CommandScheduler.getInstance().cancelAll();
   }
