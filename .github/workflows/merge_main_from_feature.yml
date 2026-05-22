@@ -12,7 +12,7 @@ jobs:
     steps:
       - name: Check branch
         run: |
-          if [[ ${GITHUB_HEAD_REF} != *\/* ]]; then
-            echo "Error: Pull request must come from an era branch"
+          if [[ ${GITHUB_HEAD_REF} == *\/* ]]; then
+            echo "Error: Pull request must come from a feature branch"
             exit 1
           fi
