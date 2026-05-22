@@ -1,5 +1,5 @@
 # credit [to](https://stackoverflow.com/a/78766052)
-name: require merge from era branch
+name: require merge from feature branch
 
 on:
   pull_request:
