@@ -1,0 +1,18 @@
+# credit [to](https://stackoverflow.com/a/78766052)
+name: require merge from era branch
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  check-branch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check branch
+        run: |
+          if [[ ${GITHUB_HEAD_REF} != *\/* ]]; then
+            echo "Error: Pull request must come from an era branch"
+            exit 1
+          fi
