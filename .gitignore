@@ -105,10 +105,6 @@ Temporary Items
 
 ### VisualStudioCode ###
 .vscode/*
-!.vscode/settings.json
-!.vscode/tasks.json
-!.vscode/launch.json
-!.vscode/extensions.json
 
 ### Windows ###
 # Windows thumbnail cache files
@@ -171,6 +167,7 @@ out/
 # Simulation GUI and other tools window save file
 networktables.json
 simgui.json
+simgui-ds.json
 *-window.json
 
 # Simulation data log directory
@@ -185,9 +182,3 @@ compile_commands.json
 
 # Eclipse generated file for annotation processors
 .factorypath
-
-# Mac File
-.DS_Store
-
-# Generated Build Constants file
-src/main/java/frc/robot/BuildConstants.java
