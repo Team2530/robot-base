@@ -1,0 +1,26 @@
+# credit [to](https://stackoverflow.com/a/78766052)
+name: require merge from main split of split branch
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  check-branch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check split branch
+        run: |
+          if [[ ${GITHUB_HEAD_REF} != *\/* ]]
+          then
+            echo "Branch is not a split branch."
+            exit 0
+          else if [[ ${GITHUB_HEAD_REF} != *\/main ]]
+          then
+              echo \
+              "Pull request for a split branch must come from the main" \
+              "split. Try creating a pull request from the branch with the" \
+              "suffix \"/main\""
+              exit 1
+          fi
