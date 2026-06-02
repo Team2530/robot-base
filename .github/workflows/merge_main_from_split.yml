@@ -16,7 +16,11 @@ jobs:
           then
             echo "Branch is not a split branch."
             exit 0
-          else if [[ ${GITHUB_HEAD_REF} != *\/main ]]
+          elif [[ ${GITHUB_HEAD_REF} != *\/main ]]
           then
+              echo \
+              "Pull request for a split branch must come from the main" \
+              "split. Try creating a pull request from the branch with the" \
+              "suffix \"/main\""
               exit 1
           fi
