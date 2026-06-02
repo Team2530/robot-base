@@ -12,8 +12,7 @@ jobs:
     steps:
       - name: Check split branch
         run: |
-          if [[ ${GITHUB_HEAD_REF} != *\/* ]]
-          then
+          if [[ ${GITHUB_HEAD_REF} != *\/* ]]; then
             echo "Branch is not a split branch."
             exit 0
           else if [[ ${GITHUB_HEAD_REF} != *\/main ]]
