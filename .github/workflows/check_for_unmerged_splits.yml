@@ -12,18 +12,16 @@ jobs:
     steps:
       - name: Check split branch
         uses: actions/checkout@v6
-        run: TOPIC_NAME=${GITHUB_HEAD_REF%/main}
         run: |
+          TOPIC_NAME=${GITHUB_HEAD_REF%/main}
           readarray -t ALL < <(\
             git branch --format='%(refname:short)' -a \
             | grep "$TOPIC_NAME"
           )
-        run: |
           readarray -t MERGED < <(\
             git branch --format='%(refname:short)' --merged \
             | grep "$TOPIC_NAME"
           )
-        run: |
           if [ ${#MERGED[@]} -lt ${#ALL[@]} ]
           then
             echo "The following branches have not been merged:"
