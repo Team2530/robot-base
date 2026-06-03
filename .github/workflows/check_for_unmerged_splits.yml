@@ -10,9 +10,8 @@ jobs:
     if: endsWith(github.head_ref, '/main')
     runs-on: ubuntu-latest
     steps:
-      - name: Check split branch
-        uses: actions/checkout@v6
-        run: |
+      - uses: actions/checkout@v6
+      - run: |
           TOPIC_NAME=${GITHUB_HEAD_REF%/main}
           readarray -t ALL < <(\
             git branch --format='%(refname:short)' -a \
