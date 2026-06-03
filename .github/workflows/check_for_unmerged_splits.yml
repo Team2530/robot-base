@@ -7,6 +7,7 @@ on:
 
 jobs:
   check-branch:
+    if: endsWith(github.head_ref, '/main')
     runs-on: ubuntu-latest
     steps:
       - name: Check split branch
@@ -20,15 +21,8 @@ jobs:
             git branch --format='%(refname:short)' --merged \
             | grep "$TOPIC_NAME"
           )
-          if [[ -z "${GITHUB_HEAD_REF}" ]]
-          then
-            echo "Check is not in a pull request."
-            exit 0
-          elif [[ ${GITHUB_HEAD_REF} != *\/main ]]
-          then
-            echo "Branch is not a main split."
-            exit 0
-          elif [ ${#MERGED[@]} -lt ${#ALL[@]} ]
+        run: |
+          if [ ${#MERGED[@]} -lt ${#ALL[@]} ]
           then
             echo "The following branches have not been merged:"
             # credit [to](https://stackoverflow.com/a/2816152)
