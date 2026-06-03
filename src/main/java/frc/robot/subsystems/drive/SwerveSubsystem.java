@@ -200,18 +200,18 @@ public class SwerveSubsystem extends SubsystemBase {
             SwerveModuleConfiguration modules[] = {
                 new SwerveModuleConfiguration(
                     new TalonFXSwerve(
-                        DriveConstants.CANIDs.Modules.FL.DRIVE,
+                        RobotConstants.CANIDs.Drive.FL.DRIVE,
                         true,
                         DCMotor.getKrakenX60Foc(1)
                     ),
                     new TalonFXSwerve(
-                        DriveConstants.CANIDs.Modules.FL.STEER,
+                        RobotConstants.CANIDs.Drive.FL.STEER,
                         false,
                         DCMotor.getKrakenX44Foc(1)
                     ),
                     conversionFactors,
                     new CANCoderSwerve(
-                        DriveConstants.CANIDs.Modules.FL.CANCODER
+                        RobotConstants.CANIDs.Drive.FL.ENCODER
                     ),
                     DriveConstants.Modules.Offsets.FL.ANGLE.in(Degrees),
                     DriveConstants.Modules.Offsets.FL.X.in(Meters),
@@ -227,18 +227,18 @@ public class SwerveSubsystem extends SubsystemBase {
                 ),
                 new SwerveModuleConfiguration(
                     new TalonFXSwerve(
-                        DriveConstants.CANIDs.Modules.FR.DRIVE,
+                        RobotConstants.CANIDs.Drive.FR.DRIVE,
                         true,
                         DCMotor.getKrakenX60Foc(1)
                     ),
                     new TalonFXSwerve(
-                        DriveConstants.CANIDs.Modules.FR.STEER,
+                        RobotConstants.CANIDs.Drive.FR.STEER,
                         false,
                         DCMotor.getKrakenX44Foc(1)
                     ),
                     conversionFactors,
                     new CANCoderSwerve(
-                        DriveConstants.CANIDs.Modules.FR.CANCODER
+                        RobotConstants.CANIDs.Drive.FR.ENCODER
                     ),
                     DriveConstants.Modules.Offsets.FR.ANGLE.in(Degrees),
                     DriveConstants.Modules.Offsets.FR.X.in(Meters),
@@ -252,18 +252,18 @@ public class SwerveSubsystem extends SubsystemBase {
                 ),
                 new SwerveModuleConfiguration(
                     new TalonFXSwerve(
-                        DriveConstants.CANIDs.Modules.BL.DRIVE,
+                        RobotConstants.CANIDs.Drive.BL.DRIVE,
                         true,
                         DCMotor.getKrakenX60Foc(1)
                     ),
                     new TalonFXSwerve(
-                        DriveConstants.CANIDs.Modules.BL.STEER,
+                        RobotConstants.CANIDs.Drive.BL.STEER,
                         false,
                         DCMotor.getKrakenX44Foc(1)
                     ),
                     conversionFactors,
                     new CANCoderSwerve(
-                        DriveConstants.CANIDs.Modules.BL.CANCODER
+                        RobotConstants.CANIDs.Drive.BL.ENCODER
                     ),
                     DriveConstants.Modules.Offsets.BL.ANGLE.in(Degrees),
                     DriveConstants.Modules.Offsets.BL.X.in(Meters),
@@ -277,18 +277,18 @@ public class SwerveSubsystem extends SubsystemBase {
                 ),
                 new SwerveModuleConfiguration(
                     new TalonFXSwerve(
-                        DriveConstants.CANIDs.Modules.BR.DRIVE,
+                        RobotConstants.CANIDs.Drive.BR.DRIVE,
                         true,
                         DCMotor.getKrakenX60Foc(1)
                     ),
                     new TalonFXSwerve(
-                        DriveConstants.CANIDs.Modules.BR.STEER,
+                        RobotConstants.CANIDs.Drive.BR.STEER,
                         false,
                         DCMotor.getKrakenX44Foc(1)
                     ),
                     conversionFactors,
                     new CANCoderSwerve(
-                        DriveConstants.CANIDs.Modules.BR.CANCODER
+                        RobotConstants.CANIDs.Drive.BR.ENCODER
                     ),
                     DriveConstants.Modules.Offsets.BR.ANGLE.in(Degrees),
                     DriveConstants.Modules.Offsets.BR.X.in(Meters),
@@ -305,7 +305,7 @@ public class SwerveSubsystem extends SubsystemBase {
             SwerveDriveConfiguration driveConfiguration =
                 new SwerveDriveConfiguration(
                     modules,
-                    new Pigeon2Swerve(DriveConstants.CANIDs.IMU),
+                    new Pigeon2Swerve(RobotConstants.CANIDs.Drive.IMU),
                     DriveConstants.IMU.INVERTED,
                     physicalCharacteristics
             );
