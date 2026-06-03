@@ -1,6 +1,6 @@
 package frc.robot.subsystems.limelight;
 
-import static frc.robot.util.LimelightHelpers.PoseEstimate;
+import static frc.robot.util.limelight.LimelightHelpers.PoseEstimate;
 
 
 public class Reading {
