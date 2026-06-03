@@ -1,0 +1,40 @@
+name: check for unmerged splits
+
+on:
+  pull_request:
+    branches:
+      - main
+  push:
+    branches:
+      - */*
+
+jobs:
+  check-branch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check split branch
+        run: |
+          TOPIC_NAME=${GITHUB_HEAD_REF%/main}
+          readarray -t ALL < <(\
+            git branch --format='%(refname:short)' -a \
+            | grep "$TOPIC_NAME"
+          )
+          readarray -t MERGED < <(\
+            git branch --format='%(refname:short)' --merged \
+            | grep "$TOPIC_NAME"
+          )
+          if [[ -z "${GITHUB_HEAD_REF}" ]]
+          then
+            echo "Check is not in a pull request."
+            exit 0
+          elif [[ ${GITHUB_HEAD_REF} != *\/main ]]
+          then
+            echo "Branch is not a main split."
+            exit 0
+          elif [ ${#MERGED[@]} -lt ${#ALL[@]} ]
+          then
+            echo "The following branches have not been merged:"
+            # credit [to](https://stackoverflow.com/a/2816152)
+            echo ${ALL[@]} ${MERGED[@]} | tr ' ' '\n' | sort | uniq -u
+            exit 1
+          fi
