@@ -8,7 +8,7 @@ on:
 
 jobs:
   check-branch:
-    if: contains(github.head_ref, \/)
+    if: contains(github.head_ref, '/')
     runs-on: ubuntu-latest
     steps:
       - name: Check split branch
