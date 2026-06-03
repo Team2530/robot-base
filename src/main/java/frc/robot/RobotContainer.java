@@ -46,6 +46,7 @@ import frc.robot.subsystems.limelight.LimelightSubsystem;
 import frc.robot.subsystems.drive.SwerveSubsystem;
 import frc.robot.util.homebrew.AllianceFlipUtil;
 import frc.robot.util.elastic.Elastic;
+import frc.robot.util.homebrew.Flagpole;
 
 /**
  * This class is where the bulk of the robot should be declared. Since
@@ -211,31 +212,6 @@ public class RobotContainer {
             );
     }
 
-
-    private static class Flagpole {
-        private ArrayList<Command> flags = new ArrayList<>();
-
-        public InstantCommand raiseFlaggedCommand(Supplier<Command> supplier) {
-            return new InstantCommand(() -> {
-                flags.add(
-                    supplier.get() 
-                );
-            });
-        }
-        
-        
-        public Command catchFlags() {
-            Command command = new ParallelRaceGroup(
-                    flags.toArray(
-                        new Command[flags.size()]
-                    )
-                );
-
-            flags.clear();
-
-            return command;
-        }
-    }
 
     private static void configureAutos() {
         AutoBuilder.configure(
