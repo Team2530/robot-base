@@ -8,15 +8,12 @@ on:
 
 jobs:
   check-branch:
+    if: contains(github.head_ref, \/)
     runs-on: ubuntu-latest
     steps:
       - name: Check split branch
         run: |
-          if [[ ${GITHUB_HEAD_REF} != *\/* ]]
-          then
-            echo "Branch is not a split branch."
-            exit 0
-          elif [[ ${GITHUB_HEAD_REF} != *\/main ]]
+          if [[ ${GITHUB_HEAD_REF} != *\/main ]]
           then
               echo \
               "Pull request for a split branch must come from the main" \
