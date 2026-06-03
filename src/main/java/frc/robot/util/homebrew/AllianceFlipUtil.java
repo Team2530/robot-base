@@ -19,7 +19,7 @@ import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.wpilibj.DriverStation;
-import frc.robot.Constants.MetaConstants;
+import frc.robot.util.constants.MetaConstants;
 
 public class AllianceFlipUtil {
 

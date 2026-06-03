@@ -5,7 +5,7 @@ import java.util.function.Supplier;
 
 import static frc.robot.util.limelight.LimelightHelpers.PoseEstimate;
 import frc.robot.RobotContainer;
-import frc.robot.Constants.LimelightConstants;
+import frc.robot.util.constants.LimelightConstants;
 import frc.robot.subsystems.limelight.Reading.ReadingType;
 import frc.robot.util.limelight.LimelightHelpers;
 import edu.wpi.first.math.geometry.Pose2d;
