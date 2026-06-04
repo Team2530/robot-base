@@ -24,6 +24,7 @@ import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.networktables.StructPublisher;
 import edu.wpi.first.units.measure.LinearVelocity;
 import edu.wpi.first.units.measure.AngularVelocity;
+import edu.wpi.first.wpilibj.Notifier;
 import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
@@ -34,6 +35,7 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.Constants.DriveConstants;
 import frc.robot.Constants.MetaConstants;
+import frc.robot.Constants.OdometryConstants;
 import frc.robot.Constants.RobotConstants;
 import frc.robot.Constants.ChoreoConstants;
 import frc.robot.RobotContainer;
@@ -375,12 +377,30 @@ public class SwerveSubsystem extends SubsystemBase {
         SmartDashboard.putData("swerve/SysId Drive Motors", sysIdDriveCommand());  
         SmartDashboard.putData("swerve/SysId Angle Motors", sysIdAngleCommand());
         SmartDashboard.putData("swerve/field", swerveDrive.field);
+
+
+        swerveDrive.stopOdometryThread();
+        odometryNotifier = new Notifier(this::overclock);
+        odometryNotifier.startPeriodic(OdometryConstants.UPDATE_RATE);
     };
 
     @Override
-    public void periodic() {
-        // this should be called every loop
-        // [see](https://yet-another-software-suite.github.io/YAGSL/javadocs/swervelib/SwerveDrive.html#updateOdometry())
+    public void periodic() {}
+
+    private final Notifier odometryNotifier;
+    /*
+     * This method is run regularly via a notifier within this file.
+     * Functionally it acts like a second periodic function, but because of
+     * the notifier, it runs on a separate thread, at a faster rate.
+     *
+     * As such, in this case we use it to run our odometry fusion for faster,
+     * parallel execution.
+     */
+    public void overclock() {
+        // this should be called every loop.
+        //
+        // normally, this is done automatically by yagsl in its a notifier,
+        // but since we have our own, yagsl's has been disabled
         swerveDrive.updateOdometry();
 
         ArrayList<Reading> mt1Readings = RobotContainer.limelightSubsystem
@@ -484,7 +504,7 @@ public class SwerveSubsystem extends SubsystemBase {
                     VecBuilder.fill(
                         stddevs[0] * translationDissonance,
                         stddevs[1] * translationDissonance,
-                        999999 // stddevs[2] 
+                        999999 // stddevs[2]
                     )
                 );
 
@@ -510,6 +530,7 @@ public class SwerveSubsystem extends SubsystemBase {
             getYVelocity().in(MetersPerSecond)
         );
     }
+
 
     public void snapToVision() {
         ArrayList<Reading> mt1Readings = RobotContainer.limelightSubsystem
