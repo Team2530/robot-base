@@ -105,6 +105,10 @@ Temporary Items
 
 ### VisualStudioCode ###
 .vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
 
 ### Windows ###
 # Windows thumbnail cache files
@@ -182,3 +186,9 @@ compile_commands.json
 
 # Eclipse generated file for annotation processors
 .factorypath
+
+# Mac File
+.DS_Store
+
+# Generated Build Constants file
+src/main/java/frc/robot/BuildConstants.java
