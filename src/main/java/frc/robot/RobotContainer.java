@@ -40,7 +40,7 @@ import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Constants.MetaConstants;
 import frc.robot.Constants.RobotConstants;
 import frc.robot.commands.control.DriveCommand;
-import frc.robot.commands.util.MatchtimeStatusCommand;
+
 import frc.robot.commands.util.VoltageStatusCommand;
 import frc.robot.Constants.DriveConstants;
 import frc.robot.subsystems.limelight.LimelightSubsystem;
@@ -137,8 +137,7 @@ public class RobotContainer {
                         Elastic.selectTab("Autonomous");
                     }),
 
-                    new VoltageStatusCommand(),
-                    new MatchtimeStatusCommand()
+                    new VoltageStatusCommand()
                 )
             );
 
