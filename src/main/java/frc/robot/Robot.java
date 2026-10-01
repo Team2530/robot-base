@@ -79,24 +79,24 @@ public class Robot extends TimedRobot {
   public void robotInit() {
     m_robotContainer = new RobotContainer();
     // Put git/code version metadata on networktables
-    NetworkTable versionTable = NetworkTableInstance.getDefault()
-        .getTable("Version");
-    versionTable.putValue(
-        "GIT_SHA",
-        NetworkTableValue.makeString(BuildConstants.GIT_SHA)
-    );
-    versionTable.putValue(
-        "BUILD_DATE",
-        NetworkTableValue.makeString(BuildConstants.BUILD_DATE)
-    );
-    versionTable.putValue(
-        "GIT_BRANCH",
-        NetworkTableValue.makeString(BuildConstants.GIT_BRANCH)
-    );
-    versionTable.putValue(
-        "DIRTY",
-        NetworkTableValue.makeBoolean(BuildConstants.DIRTY != 0)
-    );
+    // NetworkTable versionTable = NetworkTableInstance.getDefault()
+    //     .getTable("Version");
+    // versionTable.putValue(
+    //     "GIT_SHA",
+    //     NetworkTableValue.makeString(BuildConstants.GIT_SHA)
+    // );
+    // versionTable.putValue(
+    //     "BUILD_DATE",
+    //     NetworkTableValue.makeString(BuildConstants.BUILD_DATE)
+    // );
+    // versionTable.putValue(
+    //     "GIT_BRANCH",
+    //     NetworkTableValue.makeString(BuildConstants.GIT_BRANCH)
+    // );
+    // versionTable.putValue(
+    //     "DIRTY",
+    //     NetworkTableValue.makeBoolean(BuildConstants.DIRTY != 0)
+    // );
 
     WebServer.start(5800, Filesystem.getDeployDirectory().getPath());
 
