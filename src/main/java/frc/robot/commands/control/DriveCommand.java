@@ -10,8 +10,8 @@ import edu.wpi.first.wpilibj.XboxController;
 
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.subsystems.drive.SwerveSubsystem;
-import frc.robot.Constants.DriveConstants;
-import frc.robot.Constants.MetaConstants;
+import frc.robot.util.constants.DriveConstants;
+import frc.robot.util.constants.MetaConstants;
 
 public class DriveCommand extends Command {
 
