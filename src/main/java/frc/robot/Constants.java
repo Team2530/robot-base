@@ -68,6 +68,39 @@ public final class Constants {
         public static final Mass TOTAL_MASS = Kilogram.of(107);
         public static final MomentOfInertia MOMENT_OF_INERTIA =
             KilogramSquareMeters.of(6.883);
+
+
+        public static final class CANIDs {
+            public static final class Drive {
+                public static final int IMU = 0;
+
+                public static final class FL {
+                    public static final int DRIVE = 10;
+                    public static final int STEER = 11;
+                    public static final int ENCODER = 12;
+                }
+
+                public static final class FR {
+                    public static final int DRIVE = 7;
+                    public static final int STEER = 8;
+                    public static final int ENCODER = 9;
+                }
+
+                public static final class BL {
+                    public static final int DRIVE = 4;
+                    public static final int STEER = 5;
+                    public static final int ENCODER = 6;
+                }
+
+                public static final class BR {
+                    public static final int DRIVE = 1;
+                    public static final int STEER = 2;
+                    public static final int ENCODER = 3;
+                }
+            }
+            
+            public static final int PDH = 13;
+        }
     }
 
     public static final class DriveConstants {
@@ -213,36 +246,6 @@ public final class Constants {
                     public static final double D = 0;
                     public static final double F = 0;
                     public static final double IZ = 0;
-                }
-            }
-        }
-
-        public static class CANIDs {
-            public static final int IMU = 0;
-
-            public static class Modules {
-                public static final class FL {
-                    public static final int DRIVE = 10;
-                    public static final int STEER = 11;
-                    public static final int CANCODER = 12;
-                }
-
-                public static final class FR {
-                    public static final int DRIVE = 7;
-                    public static final int STEER = 8;
-                    public static final int CANCODER = 9;
-                }
-
-                public static final class BL {
-                    public static final int DRIVE = 4;
-                    public static final int STEER = 5;
-                    public static final int CANCODER = 6;
-                }
-
-                public static final class BR {
-                    public static final int DRIVE = 1;
-                    public static final int STEER = 2;
-                    public static final int CANCODER = 3;
                 }
             }
         }

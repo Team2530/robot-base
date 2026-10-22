@@ -47,6 +47,7 @@ import frc.robot.subsystems.limelight.LimelightSubsystem;
 import frc.robot.subsystems.drive.SwerveSubsystem;
 import frc.robot.util.AllianceFlipUtil;
 import frc.robot.util.Elastic;
+import frc.robot.subsystems.util.PDHSubsystem;
 
 /**
  * This class is where the bulk of the robot should be declared. Since
@@ -73,6 +74,9 @@ public class RobotContainer {
     @Logged
     public static final SwerveSubsystem swerveDriveSubsystem =
         new SwerveSubsystem();
+
+    @Logged
+    public static final PDHSubsystem pdhSubsystem = new PDHSubsystem();
 
     @Logged
     public static final DriveCommand normalDrive = new DriveCommand(
