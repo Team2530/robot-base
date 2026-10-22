@@ -137,7 +137,8 @@ public class RobotContainer {
                         Elastic.selectTab("Autonomous");
                     }),
 
-                    new VoltageStatusCommand()
+                    new VoltageStatusCommand(),
+                    new MatchtimeStatusCommand()
                 )
             );
 
