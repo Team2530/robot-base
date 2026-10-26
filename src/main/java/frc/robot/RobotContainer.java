@@ -39,10 +39,12 @@ import edu.wpi.first.wpilibj2.command.button.Trigger;
 
 import frc.robot.util.constants.MetaConstants;
 import frc.robot.util.constants.RobotConstants;
+import frc.robot.util.constants.LimelightConstants;
 import frc.robot.commands.control.DriveCommand;
 import frc.robot.commands.util.VoltageStatusCommand;
 import frc.robot.commands.util.MatchtimeStatusCommand;
 import frc.robot.util.constants.DriveConstants;
+import frc.robot.subsystems.limelight.Limelight;
 import frc.robot.subsystems.limelight.LimelightSubsystem;
 import frc.robot.subsystems.drive.SwerveSubsystem;
 import frc.robot.util.homebrew.AllianceFlipUtil;
@@ -79,29 +81,10 @@ public class RobotContainer {
             swerveDriveSubsystem,
             driverXbox.getHID()
         );
-    public static final LimelightSubsystem limelightSubsystem =
-         new LimelightSubsystem(
-        /*
-            // These are initating the individual Limlight(s). The name should
-            // match the limelight internal names.
-            new Limelight(
-                "limelight-fl",
-                new Pose3d(
-                    new Translation3d(
-                        Meters.of(-0.31513),
-                        Meters.of(-0.25669),
-                        Meters.of(0.261315)
-                    ),
-                    new Rotation3d(
-                        Degrees.of(-1.6),
-                        Degrees.of(-14.8),
-                        Degrees.of(55)
-                    )
-                )
-            ),
 
-        ... so on and so forth
-        */
+    public static final LimelightSubsystem limelightSubsystem =
+        new LimelightSubsystem(
+            LimelightConstants.limelights
         );
 
     /*
