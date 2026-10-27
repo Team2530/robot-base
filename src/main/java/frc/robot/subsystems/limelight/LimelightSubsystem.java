@@ -3,6 +3,7 @@ package frc.robot.subsystems.limelight;
 import static edu.wpi.first.units.Units.*;
 
 import frc.robot.RobotContainer;
+import frc.robot.util.limelight.LimelightHelpers;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -11,6 +12,7 @@ import java.util.Optional;
 import edu.wpi.first.units.measure.Time;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 public class LimelightSubsystem extends SubsystemBase{
@@ -50,6 +52,10 @@ public class LimelightSubsystem extends SubsystemBase{
             setPipelines(0);
         } else {
             setPipelines(1);
+        }
+        
+        if (DriverStation.isTeleopEnabled()){
+                setRewinds(true);
         }
     }
 
@@ -102,6 +108,37 @@ public class LimelightSubsystem extends SubsystemBase{
     public void setPipelines(int index) {
         for (Limelight limelight : limelights) {
             limelight.setPipeline(index);
+        }
+    }
+
+    
+    public void setRewinds(boolean value) {
+        for (Limelight limelight : limelights) {
+            LimelightHelpers.setRewindEnabled(
+                limelight.getId(),
+                value
+            );
+        }
+    }
+
+    public void captureRewinds(Time time) {
+        for (Limelight limelight : limelights) {
+            LimelightHelpers.triggerRewindCapture(
+                    limelight.getId(),
+                    MathUtil.clamp(
+                        time.in(Seconds), 
+                        0.0, 
+                        165.0
+                    )
+            );
+        }
+    }
+
+    public void captureSnapshot() {
+        for (Limelight limelight : limelights) {
+            LimelightHelpers.triggerSnapshot(
+                    limelight.getId()
+            );
         }
     }
 }

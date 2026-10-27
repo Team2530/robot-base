@@ -193,6 +193,20 @@ public class RobotContainer {
                         }
                     }
             );
+
+        driverXbox.a()
+            .onTrue(
+                new InstantCommand(() -> {
+                    limelightSubsystem.captureSnapshot();
+                })
+            );
+
+        driverXbox.b()
+            .onTrue(
+                new InstantCommand(() -> {
+                    limelightSubsystem.captureRewinds(Seconds.of(10));
+                })
+            );
     }
 
 
