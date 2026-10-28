@@ -46,8 +46,8 @@ import frc.robot.util.constants.DriveConstants;
 import frc.robot.subsystems.limelight.Limelight;
 import frc.robot.subsystems.limelight.LimelightSubsystem;
 import frc.robot.subsystems.drive.SwerveSubsystem;
-import frc.robot.util.AllianceFlipUtil;
-import frc.robot.util.Elastic;
+import frc.robot.util.homebrew.AllianceFlipUtil;
+import frc.robot.util.elastic.Elastic;
 import frc.robot.subsystems.util.PDHSubsystem;
 
 /**
@@ -122,8 +122,6 @@ public class RobotContainer {
                     new InstantCommand(() -> {
                         Elastic.selectTab("Autonomous");
                     }),
-
-                    new VoltageStatusCommand(),
                     new MatchtimeStatusCommand()
                 )
             );
