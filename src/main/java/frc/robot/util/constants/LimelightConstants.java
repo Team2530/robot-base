@@ -99,7 +99,7 @@ public final class LimelightConstants {
         }
     }
 
-    public static final Limelight[] limelights = {
+    public static final Limelight[] limelightConfigs = {
         new Limelight(LimelightConfigs.FL_Limelight.ID, LimelightConfigs.FL_Limelight.CAMERA_POSE),
         new Limelight(LimelightConfigs.FR_Limelight.ID, LimelightConfigs.FR_Limelight.CAMERA_POSE),
         new Limelight(LimelightConfigs.BL_Limelight.ID, LimelightConfigs.BL_Limelight.CAMERA_POSE),

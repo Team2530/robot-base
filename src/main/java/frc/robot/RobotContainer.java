@@ -87,7 +87,7 @@ public class RobotContainer {
 
     public static final LimelightSubsystem limelightSubsystem =
         new LimelightSubsystem(
-            LimelightConstants.limelights
+            LimelightConstants.limelightConfigs
         );
 
     /*
