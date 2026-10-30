@@ -3,6 +3,7 @@ package frc.robot.subsystems.drive;
 import static edu.wpi.first.units.Units.*;
 
 import java.util.ArrayList;
+import java.util.Optional;
 
 import com.pathplanner.lib.config.PIDConstants;
 import com.pathplanner.lib.controllers.PPHolonomicDriveController;
@@ -400,6 +401,24 @@ public class SwerveSubsystem extends SubsystemBase {
             double now = Timer.getTimestamp();
             double age = now - timestamp;
 
+            Optional<Pose2d> predictedPose = swerveDrive.swerveDrivePoseEstimator.sampleAt(timestamp);
+
+            // Add Deviation Validation to Reject Poses that have Varied too Far
+            boolean validPoseDeviation = false;
+
+            if (predictedPose.isPresent()) {
+                double poseError = predictedPose.get()
+                    .getTranslation()
+                    .getDistance(reading.getEstimate().pose.getTranslation());
+
+                validPoseDeviation = poseError < 
+                    LimelightConstants.DEVIATION_VALIDATION_THRESHOLD.in(Meters);
+
+                SmartDashboard.putNumber(
+                    "Odometry/" + reading.getLimelightId() + "/poseError",
+                    poseError
+            );
+}
             boolean validTimestamp =
                 Double.isFinite(timestamp)
                 && Double.isFinite(age)
@@ -409,6 +428,7 @@ public class SwerveSubsystem extends SubsystemBase {
             if (
                 reading.getEstimate().tagCount >= 2
                 && validTimestamp
+                && validPoseDeviation
                 // Reject Poses if the robot is spinning too fast, 
                 // as they are likely to be inaccurate
                 && RobotContainer.swerveDriveSubsystem

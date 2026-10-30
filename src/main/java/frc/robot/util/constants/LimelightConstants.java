@@ -38,6 +38,8 @@ public final class LimelightConstants {
 
     public static final Time TIMESTAMP_VALIDATION_THRESHOLD = Seconds.of(0.25);
 
+    public static final Distance DEVIATION_VALIDATION_THRESHOLD = Meters.of(1);
+
     public final class LimelightConfigs {
         public final class FL_Limelight {
             public static final String ID = "limelight-fl";
