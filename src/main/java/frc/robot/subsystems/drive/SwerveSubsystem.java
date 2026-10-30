@@ -392,6 +392,7 @@ public class SwerveSubsystem extends SubsystemBase {
         // regular mt2 vision measurements
         for (Reading reading : mt2Readings) {
             boolean added;
+            // Filtering out mt2 if the robot is spinning too fast or if the reading is outside of the field.
             if (
                 reading.getEstimate().tagCount >= 2
                 && (RobotContainer.swerveDriveSubsystem
@@ -429,7 +430,8 @@ public class SwerveSubsystem extends SubsystemBase {
                         .getTranslation()
                 );
             }
-            averaged.div(mt2Filtered.size());
+
+            averaged = averaged.div(mt2Filtered.size());
 
             double dissonance = Math.max(
                 averaged.getSquaredDistance(

@@ -55,7 +55,7 @@ public class LimelightSubsystem extends SubsystemBase{
         }
         
         if (DriverStation.isTeleopEnabled()){
-                setRewinds(true);
+            setRewinds(true);
         }
     }
 
