@@ -33,8 +33,10 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.util.constants.DriveConstants;
+import frc.robot.util.constants.LimelightConstants;
 import frc.robot.util.constants.MetaConstants;
 import frc.robot.util.constants.RobotConstants;
+import frc.robot.util.limelight.LimelightHelpers.PoseEstimate;
 import frc.robot.util.constants.ChoreoConstants;
 import frc.robot.RobotContainer;
 import frc.robot.subsystems.limelight.Reading;
@@ -392,23 +394,41 @@ public class SwerveSubsystem extends SubsystemBase {
         // regular mt2 vision measurements
         for (Reading reading : mt2Readings) {
             boolean added;
-            // Filtering out mt2 if the robot is spinning too fast or if the reading is outside of the field.
+
+            // Add Timestamp Validation to Reject Old Poses
+            double timestamp = reading.getEstimate().timestampSeconds;
+            double now = Timer.getTimestamp();
+            double age = now - timestamp;
+
+            boolean validTimestamp =
+                Double.isFinite(timestamp)
+                && Double.isFinite(age)
+                && age >= 0
+                && age < LimelightConstants.TIMESTAMP_VALIDATION_THRESHOLD.in(Seconds);
+
             if (
                 reading.getEstimate().tagCount >= 2
-                && (RobotContainer.swerveDriveSubsystem
-                        .getAngularVelocity()
-                        .abs(RadiansPerSecond)
-                    < (2 * Math.PI)
-                ) && (
-                    0 < reading.getEstimate().pose.getX() 
-                    && reading.getEstimate().pose.getX() < MetaConstants.Field.LENGTH.in(Meters)
-                ) && (
-                    0 < reading.getEstimate().pose.getY() 
-                    && reading.getEstimate().pose.getY() < MetaConstants.Field.WIDTH.in(Meters)
+                && validTimestamp
+                // Reject Poses if the robot is spinning too fast, 
+                // as they are likely to be inaccurate
+                && RobotContainer.swerveDriveSubsystem
+                    .getAngularVelocity()
+                    .abs(RadiansPerSecond) < (2 * Math.PI)
+                && (
+                    //Reject Poses if they are outside the field boundaries.
+                    0 < reading.getEstimate().pose.getX()
+                    && reading.getEstimate().pose.getX()
+                        < MetaConstants.Field.LENGTH.in(Meters)
+                )
+                && (
+                    0 < reading.getEstimate().pose.getY()
+                    && reading.getEstimate().pose.getY()
+                        < MetaConstants.Field.WIDTH.in(Meters)
                 ) 
+                // TODO: Reject Poses if Z coordinate does not 
+                //match the expected height of the limelight 
             ) {
                 mt2Filtered.add(reading);
-
                 added = true;
             } else {
                 added = false;
@@ -417,6 +437,11 @@ public class SwerveSubsystem extends SubsystemBase {
             SmartDashboard.putBoolean(
                 "Odometry/" + reading.getLimelightId() + "/added",
                 added
+            );
+
+            SmartDashboard.putNumber(
+                "Odometry/" + reading.getLimelightId() + "/timestampAge",
+                age
             );
         }
 
