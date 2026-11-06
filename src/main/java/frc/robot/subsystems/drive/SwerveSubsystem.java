@@ -498,20 +498,26 @@ public class SwerveSubsystem extends SubsystemBase {
 
             averaged = averaged.div(mt2Filtered.size());
 
-            double totalSquaredDistance = 0.0;
+            double xDissonance = 0.0;
+            double yDissonance = 0.0;
 
             for (Reading filtered : mt2Filtered) {
-                totalSquaredDistance += averaged.getSquaredDistance(
-                    filtered.getEstimate().pose.getTranslation()
+                Translation2d translation = filtered.getEstimate().pose.getTranslation();
+
+                xDissonance += Math.pow(
+                    translation.getX() - averaged.getX(), 2
+                );
+
+                yDissonance += Math.pow(
+                    translation.getY() - averaged.getY(), 2
                 );
             }
 
-            double dissonance = Math.max(totalSquaredDistance / mt2Filtered.size(), 0.024);
+            xDissonance = Math.max(xDissonance / mt2Filtered.size(), 0.024);
+            yDissonance = Math.max(yDissonance / mt2Filtered.size(), 0.024);
 
-            SmartDashboard.putNumber(
-                "Odometry/dissonance",
-                dissonance
-            );
+            SmartDashboard.putNumber("Odometry/xDissonance", xDissonance);
+            SmartDashboard.putNumber("Odometry/yDissonance", yDissonance);
 
             // try to correct dissonance
             for (Reading reading : mt1Readings) {
@@ -538,10 +544,16 @@ public class SwerveSubsystem extends SubsystemBase {
             }
             
             // Clamp TranslationDissonance to prevent over or underconfidence.
-            double translationDissonance = MathUtil.clamp(
-                Math.pow(dissonance / 0.04, 3),
+            double xTranslationDissonance = MathUtil.clamp(
+                Math.pow(xDissonance / 0.04, 3),
                 0.5,
-                10
+                10.0
+            );
+
+            double yTranslationDissonance = MathUtil.clamp(
+                Math.pow(yDissonance / 0.04, 3),
+                0.5,
+                10.0
             );
 
             for (Reading filtered: mt2Filtered) {
@@ -552,8 +564,8 @@ public class SwerveSubsystem extends SubsystemBase {
                     estimate.pose,
                     estimate.timestampSeconds,
                     VecBuilder.fill(
-                        stddevs[0] * translationDissonance,
-                        stddevs[1] * translationDissonance,
+                        stddevs[0] * xTranslationDissonance,
+                        stddevs[1] * yTranslationDissonance,
                         999999 // stddevs[2] 
                     )
                 );
