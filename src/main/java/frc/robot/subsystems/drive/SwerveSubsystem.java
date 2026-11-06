@@ -531,17 +531,19 @@ public class SwerveSubsystem extends SubsystemBase {
                         VecBuilder.fill(
                             999999,
                             999999,
-                            stddevs[2] / dissonance
+                            stddevs[2]
                         )
                     );
                 }
             }
-
+            
+            // Clamp TranslationDissonance to prevent over or underconfidence.
             double translationDissonance = MathUtil.clamp(
                 Math.pow(dissonance / 0.04, 3),
                 0.5,
                 10
             );
+
             for (Reading filtered: mt2Filtered) {
                 PoseEstimate estimate = filtered.getEstimate();
                 double[] stddevs = filtered.getStddevs();
