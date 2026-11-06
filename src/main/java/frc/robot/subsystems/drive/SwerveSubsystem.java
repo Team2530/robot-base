@@ -20,6 +20,7 @@ import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
+import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.networktables.StructPublisher;
@@ -536,10 +537,11 @@ public class SwerveSubsystem extends SubsystemBase {
                 }
             }
 
-            double translationDissonance = Math.pow(
-                    dissonance / 0.04,
-                    3
-                );
+            double translationDissonance = MathUtil.clamp(
+                Math.pow(dissonance / 0.04, 3),
+                0.5,
+                10
+            );
             for (Reading filtered: mt2Filtered) {
                 PoseEstimate estimate = filtered.getEstimate();
                 double[] stddevs = filtered.getStddevs();
