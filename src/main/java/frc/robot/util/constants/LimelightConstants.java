@@ -9,9 +9,12 @@ import frc.robot.subsystems.limelight.LimelightSubsystem;
 import frc.robot.subsystems.limelight.Limelight;
 
 import static edu.wpi.first.units.Units.*;
+import edu.wpi.first.units.measure.*;
+
 
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Translation3d;
+import edu.wpi.first.units.Unit;
 import edu.wpi.first.math.geometry.Rotation3d;
 
 
@@ -33,19 +36,23 @@ public final class LimelightConstants {
         35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48
     };
 
+    public static final Time TIMESTAMP_VALIDATION_THRESHOLD = Seconds.of(0.25);
+
+    public static final Distance DEVIATION_VALIDATION_THRESHOLD = Meters.of(1);
+
     public final class LimelightConfigs {
         public final class FL_Limelight {
             public static final String ID = "limelight-fl";
             public static final Pose3d CAMERA_POSE = new Pose3d(
                 new Translation3d(
-                    Meters.of(0),
-                    Meters.of(0),
-                    Meters.of(0)
+                    Meters.of(-3.18135),
+                    Meters.of(2.53365),
+                    Meters.of(2.60985)
                 ),
                 new Rotation3d(
                     Degrees.of(0),
-                    Degrees.of(0),
-                    Degrees.of(0)
+                    Degrees.of(14.4),
+                    Degrees.of(120.5)
                 )
             ); 
         }
@@ -54,14 +61,14 @@ public final class LimelightConstants {
             public static final String ID = "limelight-fr";
             public static final Pose3d CAMERA_POSE = new Pose3d(
                 new Translation3d(
-                    Meters.of(0),
-                    Meters.of(0),
-                    Meters.of(0)
+                    Meters.of(3.18135),
+                    Meters.of(2.53365),
+                    Meters.of(2.60985)
                 ),
                 new Rotation3d(
                     Degrees.of(0),
-                    Degrees.of(0),
-                    Degrees.of(0)
+                    Degrees.of(14.4),
+                    Degrees.of(239.5)
                 )
             ); 
         }
@@ -70,14 +77,14 @@ public final class LimelightConstants {
             public static final String ID = "limelight-bl";
             public static final Pose3d CAMERA_POSE = new Pose3d(
                 new Translation3d(
-                    Meters.of(0),
-                    Meters.of(0),
-                    Meters.of(0)
+                    Meters.of(-3.18135),
+                    Meters.of(-2.53365),
+                    Meters.of(2.60985)
                 ),
                 new Rotation3d(
                     Degrees.of(0),
-                    Degrees.of(0),
-                    Degrees.of(0)
+                    Degrees.of(14.4),
+                    Degrees.of(59.5)
                 )
             ); 
         }
@@ -86,14 +93,14 @@ public final class LimelightConstants {
             public static final String ID = "limelight-br";
             public static final Pose3d CAMERA_POSE = new Pose3d(
                 new Translation3d(
-                    Meters.of(0),
-                    Meters.of(0),
-                    Meters.of(0)
+                    Meters.of(3.18135),
+                    Meters.of(-2.53365),
+                    Meters.of(2.60985)
                 ),
                 new Rotation3d(
                     Degrees.of(0),
-                    Degrees.of(0),
-                    Degrees.of(0)
+                    Degrees.of(14.4),
+                    Degrees.of(300.5)
                 )
             ); 
         }

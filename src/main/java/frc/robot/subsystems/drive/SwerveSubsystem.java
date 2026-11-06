@@ -3,6 +3,7 @@ package frc.robot.subsystems.drive;
 import static edu.wpi.first.units.Units.*;
 
 import java.util.ArrayList;
+import java.util.Optional;
 
 import com.pathplanner.lib.config.PIDConstants;
 import com.pathplanner.lib.controllers.PPHolonomicDriveController;
@@ -19,6 +20,7 @@ import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
+import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.networktables.StructPublisher;
@@ -33,8 +35,11 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.util.constants.DriveConstants;
+import frc.robot.util.constants.LimelightConstants;
 import frc.robot.util.constants.MetaConstants;
 import frc.robot.util.constants.RobotConstants;
+import frc.robot.util.limelight.LimelightHelpers;
+import frc.robot.util.limelight.LimelightHelpers.PoseEstimate;
 import frc.robot.util.constants.ChoreoConstants;
 import frc.robot.RobotContainer;
 import frc.robot.subsystems.limelight.Reading;
@@ -389,25 +394,65 @@ public class SwerveSubsystem extends SubsystemBase {
             .getMT2Readings();
 
         ArrayList<Reading> mt2Filtered = new ArrayList<>();
-        // regular mt2 vision measurements
+
+        // VALIDATE MT2 READINGS
         for (Reading reading : mt2Readings) {
             boolean added;
+
+            // Add Timestamp Validation to Reject Old Poses
+            double timestamp = reading.getEstimate().timestampSeconds;
+            double now = Timer.getTimestamp();
+            double age = now - timestamp;
+
+            Optional<Pose2d> predictedPose = swerveDrive.swerveDrivePoseEstimator.sampleAt(timestamp);
+
+            // Add Deviation Validation to Reject Poses that have Varied too Far
+            boolean validPoseDeviation = false;
+
+            if (predictedPose.isPresent()) {
+                double poseError = predictedPose.get()
+                    .getTranslation()
+                    .getDistance(reading.getEstimate().pose.getTranslation());
+
+                validPoseDeviation = poseError < 
+                    LimelightConstants.DEVIATION_VALIDATION_THRESHOLD.in(Meters);
+
+                SmartDashboard.putNumber(
+                    "Odometry/" + reading.getLimelightId() + "/poseError",
+                    poseError
+                );
+            }
+
+            boolean validTimestamp =
+                Double.isFinite(timestamp)
+                && Double.isFinite(age)
+                && age >= 0
+                && age < LimelightConstants.TIMESTAMP_VALIDATION_THRESHOLD.in(Seconds);
+
+            //Reject Poses if they are outside the field boundaries.
+            boolean validFieldPose = (
+                0 < reading.getEstimate().pose.getX()
+                && reading.getEstimate().pose.getX()
+                    < MetaConstants.Field.LENGTH.in(Meters)
+                ) && (
+                0 < reading.getEstimate().pose.getY()
+                && reading.getEstimate().pose.getY()
+                    < MetaConstants.Field.WIDTH.in(Meters)
+                );
+          
+            // Reject Poses if the robot is spinning too fast, 
+            boolean validSpinSpeed = RobotContainer.swerveDriveSubsystem
+                    .getAngularVelocity()
+                    .abs(RadiansPerSecond) < (2 * Math.PI);
+
             if (
                 reading.getEstimate().tagCount >= 2
-                && (RobotContainer.swerveDriveSubsystem
-                        .getAngularVelocity()
-                        .abs(RadiansPerSecond)
-                    < (2 * Math.PI)
-                ) && (
-                    0 < reading.getEstimate().pose.getX() 
-                    && reading.getEstimate().pose.getX() < MetaConstants.Field.LENGTH.in(Meters)
-                ) && (
-                    0 < reading.getEstimate().pose.getY() 
-                    && reading.getEstimate().pose.getY() < MetaConstants.Field.WIDTH.in(Meters)
-                ) 
+                && validTimestamp
+                && validPoseDeviation
+                && validFieldPose
+                && validSpinSpeed
             ) {
                 mt2Filtered.add(reading);
-
                 added = true;
             } else {
                 added = false;
@@ -417,7 +462,28 @@ public class SwerveSubsystem extends SubsystemBase {
                 "Odometry/" + reading.getLimelightId() + "/added",
                 added
             );
+            SmartDashboard.putNumber(
+                "Odometry/" + reading.getLimelightId() + "/timestampAge",
+                age
+            );
+            SmartDashboard.putBoolean(
+                "Odometry/" + reading.getLimelightId() + "/validTimestamp",
+                validTimestamp
+            );
+            SmartDashboard.putBoolean(
+                "Odometry/" + reading.getLimelightId() + "/validPoseDeviation",
+                validPoseDeviation
+            );
+            SmartDashboard.putBoolean(
+                "Odometry/" + reading.getLimelightId() + "/validFieldPose",
+                validFieldPose
+            );
+            SmartDashboard.putBoolean(
+                "Odometry/" + reading.getLimelightId() + "/validSpinSpeed",
+                validSpinSpeed
+            );
         }
+
 
         if (mt2Filtered.size() > 0) {
             // average the readings to get dissonance
@@ -429,22 +495,29 @@ public class SwerveSubsystem extends SubsystemBase {
                         .getTranslation()
                 );
             }
-            averaged.div(mt2Filtered.size());
 
-            double dissonance = Math.max(
-                averaged.getSquaredDistance(
-                    mt2Filtered.get(0)
-                        .getEstimate()
-                        .pose
-                        .getTranslation()
-                ),
-                0.024
-            );
+            averaged = averaged.div(mt2Filtered.size());
 
-            SmartDashboard.putNumber(
-                "Odometry/dissonance",
-                dissonance
-            );
+            double xDissonance = 0.0;
+            double yDissonance = 0.0;
+
+            for (Reading filtered : mt2Filtered) {
+                Translation2d translation = filtered.getEstimate().pose.getTranslation();
+
+                xDissonance += Math.pow(
+                    translation.getX() - averaged.getX(), 2
+                );
+
+                yDissonance += Math.pow(
+                    translation.getY() - averaged.getY(), 2
+                );
+            }
+
+            xDissonance = Math.max(xDissonance / mt2Filtered.size(), 0.024);
+            yDissonance = Math.max(yDissonance / mt2Filtered.size(), 0.024);
+
+            SmartDashboard.putNumber("Odometry/xDissonance", xDissonance);
+            SmartDashboard.putNumber("Odometry/yDissonance", yDissonance);
 
             // try to correct dissonance
             for (Reading reading : mt1Readings) {
@@ -464,16 +537,25 @@ public class SwerveSubsystem extends SubsystemBase {
                         VecBuilder.fill(
                             999999,
                             999999,
-                            stddevs[2] / dissonance
+                            stddevs[2]
                         )
                     );
                 }
             }
+            
+            // Clamp TranslationDissonance to prevent over or underconfidence.
+            double xTranslationDissonance = MathUtil.clamp(
+                Math.pow(xDissonance / 0.04, 3),
+                0.5,
+                10.0
+            );
 
-            double translationDissonance = Math.pow(
-                    dissonance / 0.04,
-                    3
-                );
+            double yTranslationDissonance = MathUtil.clamp(
+                Math.pow(yDissonance / 0.04, 3),
+                0.5,
+                10.0
+            );
+
             for (Reading filtered: mt2Filtered) {
                 PoseEstimate estimate = filtered.getEstimate();
                 double[] stddevs = filtered.getStddevs();
@@ -482,8 +564,8 @@ public class SwerveSubsystem extends SubsystemBase {
                     estimate.pose,
                     estimate.timestampSeconds,
                     VecBuilder.fill(
-                        stddevs[0] * translationDissonance,
-                        stddevs[1] * translationDissonance,
+                        stddevs[0] * xTranslationDissonance,
+                        stddevs[1] * yTranslationDissonance,
                         999999 // stddevs[2] 
                     )
                 );
