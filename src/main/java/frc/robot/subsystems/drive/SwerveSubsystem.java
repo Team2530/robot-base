@@ -394,7 +394,7 @@ public class SwerveSubsystem extends SubsystemBase {
 
         ArrayList<Reading> mt2Filtered = new ArrayList<>();
 
-        // regular mt2 vision measurements
+        // VALIDATE MT2 READINGS
         for (Reading reading : mt2Readings) {
             boolean added;
 
@@ -483,6 +483,7 @@ public class SwerveSubsystem extends SubsystemBase {
             );
         }
 
+
         if (mt2Filtered.size() > 0) {
             // average the readings to get dissonance
             Translation2d averaged = new Translation2d();
@@ -496,15 +497,15 @@ public class SwerveSubsystem extends SubsystemBase {
 
             averaged = averaged.div(mt2Filtered.size());
 
-            double dissonance = Math.max(
-                averaged.getSquaredDistance(
-                    mt2Filtered.get(0)
-                        .getEstimate()
-                        .pose
-                        .getTranslation()
-                ),
-                0.024
-            );
+            double totalSquaredDistance = 0.0;
+
+            for (Reading filtered : mt2Filtered) {
+                totalSquaredDistance += averaged.getSquaredDistance(
+                    filtered.getEstimate().pose.getTranslation()
+                );
+            }
+
+            double dissonance = Math.max(totalSquaredDistance / mt2Filtered.size(), 0.024);
 
             SmartDashboard.putNumber(
                 "Odometry/dissonance",
