@@ -37,6 +37,7 @@ import frc.robot.util.constants.DriveConstants;
 import frc.robot.util.constants.LimelightConstants;
 import frc.robot.util.constants.MetaConstants;
 import frc.robot.util.constants.RobotConstants;
+import frc.robot.util.limelight.LimelightHelpers;
 import frc.robot.util.limelight.LimelightHelpers.PoseEstimate;
 import frc.robot.util.constants.ChoreoConstants;
 import frc.robot.RobotContainer;
@@ -392,6 +393,7 @@ public class SwerveSubsystem extends SubsystemBase {
             .getMT2Readings();
 
         ArrayList<Reading> mt2Filtered = new ArrayList<>();
+
         // regular mt2 vision measurements
         for (Reading reading : mt2Readings) {
             boolean added;
@@ -417,36 +419,37 @@ public class SwerveSubsystem extends SubsystemBase {
                 SmartDashboard.putNumber(
                     "Odometry/" + reading.getLimelightId() + "/poseError",
                     poseError
-            );
-}
+                );
+            }
+
             boolean validTimestamp =
                 Double.isFinite(timestamp)
                 && Double.isFinite(age)
                 && age >= 0
                 && age < LimelightConstants.TIMESTAMP_VALIDATION_THRESHOLD.in(Seconds);
 
+            //Reject Poses if they are outside the field boundaries.
+            boolean validFieldPose = (
+                0 < reading.getEstimate().pose.getX()
+                && reading.getEstimate().pose.getX()
+                    < MetaConstants.Field.LENGTH.in(Meters)
+                ) && (
+                0 < reading.getEstimate().pose.getY()
+                && reading.getEstimate().pose.getY()
+                    < MetaConstants.Field.WIDTH.in(Meters)
+                );
+          
+            // Reject Poses if the robot is spinning too fast, 
+            boolean validSpinSpeed = RobotContainer.swerveDriveSubsystem
+                    .getAngularVelocity()
+                    .abs(RadiansPerSecond) < (2 * Math.PI);
+
             if (
                 reading.getEstimate().tagCount >= 2
                 && validTimestamp
                 && validPoseDeviation
-                // Reject Poses if the robot is spinning too fast, 
-                // as they are likely to be inaccurate
-                && RobotContainer.swerveDriveSubsystem
-                    .getAngularVelocity()
-                    .abs(RadiansPerSecond) < (2 * Math.PI)
-                && (
-                    //Reject Poses if they are outside the field boundaries.
-                    0 < reading.getEstimate().pose.getX()
-                    && reading.getEstimate().pose.getX()
-                        < MetaConstants.Field.LENGTH.in(Meters)
-                )
-                && (
-                    0 < reading.getEstimate().pose.getY()
-                    && reading.getEstimate().pose.getY()
-                        < MetaConstants.Field.WIDTH.in(Meters)
-                ) 
-                // TODO: Reject Poses if Z coordinate does not 
-                //match the expected height of the limelight 
+                && validFieldPose
+                && validSpinSpeed
             ) {
                 mt2Filtered.add(reading);
                 added = true;
@@ -458,10 +461,25 @@ public class SwerveSubsystem extends SubsystemBase {
                 "Odometry/" + reading.getLimelightId() + "/added",
                 added
             );
-
             SmartDashboard.putNumber(
                 "Odometry/" + reading.getLimelightId() + "/timestampAge",
                 age
+            );
+            SmartDashboard.putBoolean(
+                "Odometry/" + reading.getLimelightId() + "/validTimestamp",
+                validTimestamp
+            );
+            SmartDashboard.putBoolean(
+                "Odometry/" + reading.getLimelightId() + "/validPoseDeviation",
+                validPoseDeviation
+            );
+            SmartDashboard.putBoolean(
+                "Odometry/" + reading.getLimelightId() + "/validFieldPose",
+                validFieldPose
+            );
+            SmartDashboard.putBoolean(
+                "Odometry/" + reading.getLimelightId() + "/validSpinSpeed",
+                validSpinSpeed
             );
         }
 
