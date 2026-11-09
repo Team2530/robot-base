@@ -1,14 +1,19 @@
 package frc.robot.commands.control;
 
+import static edu.wpi.first.units.Units.*;
+
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
+import edu.wpi.first.units.Measure;
 import edu.wpi.first.units.measure.Distance;
+import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.subsystems.drive.SwerveSubsystem;
 import frc.robot.util.constants.DriveConstants.AlignmentPid;
+import frc.robot.util.constants.DriveConstants.AlignemntTolerance;
 
 public class TagAlignCommand extends Command {
     private final SwerveSubsystem subsystem;
@@ -36,6 +41,7 @@ public class TagAlignCommand extends Command {
     
     public final Distance TARGET_FORWARD;
     public final Distance TARGET_STRAFE;
+    public final Angle TARGET_ANGLE;
     
     public TagAlignCommand(SwerveSubsystem subsystem, Distance targetForward, Distance targetStrafe) {
         this.subsystem = subsystem;
@@ -43,12 +49,13 @@ public class TagAlignCommand extends Command {
         addRequirements(subsystem);
 
         // Set tolerances to avoid jitter near the target
-        m_xController.setTolerance(0.03); // 3 cm
-        m_yController.setTolerance(0.03); 
-        m_yawController.setTolerance(1.5);  // 1.5 degrees
+        m_xController.setTolerance(AlignemntTolerance.FORWARD.in(Meters)); 
+        m_yController.setTolerance(AlignemntTolerance.STRAFE.in(Meters)); 
+        m_yawController.setTolerance(AlignemntTolerance.ROTATION.in(Degree));  
 
         TARGET_FORWARD = targetForward;
         TARGET_STRAFE = targetStrafe;
+        TARGET_ANGLE = Degree.of(0); // Assuming we want to face the target directly
     }
 
     @Override

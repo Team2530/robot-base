@@ -168,4 +168,9 @@ public final class DriveConstants {
         }
     }
 
+    public static final class AlignemntTolerance {
+        public static final Distance FORWARD = Inches.of(1);
+        public static final Distance STRAFE = Inches.of(1);
+        public static final Angle ROTATION = Degrees.of(2);
+    }
 }
