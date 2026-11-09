@@ -149,4 +149,23 @@ public final class DriveConstants {
             }
         }
     }
+
+    public static final class AlignmentPid {
+        public static final class Forward {
+            public static final double P = 1.2;
+            public static final double I = 0;
+            public static final double D = 0.05;
+        }
+        public static final class Strafe {
+            public static final double P = 1.2;
+            public static final double I = 0;
+            public static final double D = 0.05;
+        }
+        public static final class Rotation {
+            public static final double P = 0.04;
+            public static final double I = 0.001;
+            public static final double D = 0.004;
+        }
+    }
+
 }
