@@ -41,6 +41,7 @@ import frc.robot.util.constants.MetaConstants;
 import frc.robot.util.constants.RobotConstants;
 import frc.robot.util.constants.LimelightConstants;
 import frc.robot.commands.control.DriveCommand;
+import frc.robot.commands.control.TagAlignCommand;
 import frc.robot.commands.util.MatchtimeStatusCommand;
 import frc.robot.util.constants.DriveConstants;
 import frc.robot.subsystems.limelight.Limelight;
@@ -207,6 +208,15 @@ public class RobotContainer {
                 new InstantCommand(() -> {
                     limelightSubsystem.captureRewinds(Seconds.of(10));
                 })
+            );
+
+        driverXbox.x()
+            .onTrue(
+                new TagAlignCommand(
+                    swerveDriveSubsystem,
+                    Meters.of(1),
+                    Meters.of(2)
+                )
             );
     }
 
