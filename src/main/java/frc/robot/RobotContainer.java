@@ -209,15 +209,6 @@ public class RobotContainer {
                     limelightSubsystem.captureRewinds(Seconds.of(10));
                 })
             );
-
-        driverXbox.x()
-            .onTrue(
-                new TagAlignCommand(
-                    swerveDriveSubsystem,
-                    Meters.of(1),
-                    Meters.of(2)
-                )
-            );
     }
 
 
