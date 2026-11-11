@@ -23,6 +23,8 @@ import frc.robot.util.limelight.LimelightHelpers;
 import frc.robot.util.limelight.LimelightHelpers.RawFiducial;
 import frc.robot.util.constants.LimelightConstants;
 import frc.robot.subsystems.limelight.Limelight;
+import frc.robot.commands.util.BlipControllerCommand;
+import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 
@@ -54,8 +56,10 @@ public class TagAlignCommand extends Command {
     public final Distance TARGET_STRAFE;
     public final Angle TARGET_ANGLE;
     public final int TAG_ID;
+    public final String LIMELIGHT_ID;
+    public final XboxController CONTROLLER;
     
-    public TagAlignCommand(SwerveSubsystem subsystem, Distance targetForward, Distance targetStrafe, int tagID) {
+    public TagAlignCommand(SwerveSubsystem subsystem, Distance targetForward, Distance targetStrafe, int tagID, String LimelightID, XboxController Controller) {
         this.subsystem = subsystem;
         this.TAG_ID = tagID;
         m_limelightTable = NetworkTableInstance.getDefault().getTable("limelight");
@@ -69,6 +73,10 @@ public class TagAlignCommand extends Command {
         TARGET_FORWARD = targetForward;
         TARGET_STRAFE = targetStrafe;
         TARGET_ANGLE = Degree.of(0); // Assuming we want to face the target directly
+
+        LIMELIGHT_ID = LimelightID;
+
+        CONTROLLER = Controller;
     }
 
     @Override
@@ -78,90 +86,46 @@ public class TagAlignCommand extends Command {
         m_yController.reset();
         m_yawController.reset();
 
-        // Find the closest Limelight to the target and set its ID filters
-        // TODO: Improve This (This may not even be neccesary if we decide only a specifc limelight should be used)
-        /*
-                        ⠀⣠⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣰⣄⡀⠀⠀⠀
-                ⣿⠋⣻⢲⣄⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣿⡀⠀⠙⣆⠀⠀
-                ⣿⣦⡀⠀⢘⢷⣀⠀⢀⣰⢟⠛⣦⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣀⠀⠀⢀⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⡀⡄⠀⠀⠈⢷⡀⠀⢹⢷⠀
-                ⠈⢿⡄⠀⠈⠉⠈⠹⣟⠋⠀⣵⠟⠀⠀⠀⠀⠀⠀⠀⠀⠀⣠⣿⣤⣤⣼⣷⣄⣀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢰⡏⠙⣦⡀⠀⣼⡇⠀⠀⢸⡇
-                ⠀⠈⣇⠀⠀⠀⠀⠞⠉⢀⡾⠁⠀⠀⠀⠀⠀⠀⠀⣠⡶⣟⢟⣉⠀⠀⣀⣀⣉⠉⠉⠓⠦⣄⠀⠀⠀⠀⠀⠸⣇⠀⢘⣧⣴⠿⠀⠀⠀⢸⡇
-                ⠀⠀⠛⣇⠀⢈⠀⠀⠀⠘⡇⠀⠀⠀⠀⠀⢀⣤⢾⣷⡶⠛⠛⠛⠀⠀⠈⠉⠉⠙⠳⡄⠀⠈⠳⣄⠀⠀⠀⠀⢸⡇⠀⠙⠁⠀⠀⠀⠀⢺⡇
-                ⠀⠀⠀⢿⡀⠀⠀⠒⠀⣈⡇⠀⠀⠀⠀⢠⡟⠑⠁⠀⢀⡀⣠⣴⣷⣶⣶⣶⣤⣀⠀⠀⠀⠀⠀⠈⢳⡄⠀⠀⢸⡇⠀⠀⠀⠀⠀⢠⢾⠟⠁
-                ⠀⠀⠀⠈⠳⣄⠀⠀⢨⣿⠉⠀⠀⠀⢠⡟⠀⠀⠀⠀⣤⣿⣿⣿⣿⣿⣿⣿⣿⣿⣷⣄⠀⠀⠀⠀⢈⢻⡄⠈⠉⠳⣇⠀⢀⢄⣤⠞⠁⠀⠀
-                ⠀⠀⠀⠀⠀⠈⠹⠏⠏⠁⠀⠀⠀⠀⡿⠀⠀⠀⢀⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⡆⠀⠀⠀⠈⢏⡇⠀⠀⠀⠈⠹⠉⠉⠀⠀⠀⠀⠀
-                ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⡇⠀⠀⠀⣰⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⡆⠀⠀⠀⠈⣻⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
-                ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣇⠀⠀⢰⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣷⡄⠀⠀⠀⣿⠂⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
-                ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣯⠀⠂⣿⣿⣿⣿⣿⡿⠿⠉⠉⠉⠛⠿⣿⣿⣿⣿⣿⣧⠀⠀⢰⣿⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
-                ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢻⠀⠠⣿⣿⣿⣿⠯⠀⠀⠀⠀⠀⠀⠀⠛⢿⣿⣿⣿⣿⠏⠀⣾⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
-                ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⣇⠺⣿⣿⡿⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢹⢿⣿⣿⡃⢼⡏⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
-                ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢹⣤⠛⠏⠀⠀⠀⠀⠀⡀⠀⠀⠀⠀⠀⠀⠀⠈⣛⣿⣳⣿⠇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
-                ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⠉⠛⠓⠶⣄⡀⠀⠀⠀⠀⠀⠀⠀⢀⡀⣶⣶⠿⠟⠻⠋⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
-                ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⠙⠛⠒⠶⠶⠒⠲⠶⠞⠛⠉⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
-         */
+        Boolean SeeingTag = false;
 
-        List<String> activeLimelights = new java.util.ArrayList<>();
-        List<Distance> activeLimelightDistance = new java.util.ArrayList<>();
-
-        String closestLimelightID = "";
-        double closestDistance = Double.MAX_VALUE;
-
-        Boolean foundTag;
-
-        for (Limelight limelight : LimelightConstants.limelightConfigs) {
-
-            String ID = limelight.getId(); 
-            RawFiducial[] fiducials = LimelightHelpers.getRawFiducials(ID);
-
-            for (RawFiducial fiducial : fiducials) {
-                if (fiducial.id == TAG_ID) {
-                    activeLimelights.add(ID);
-                    activeLimelightDistance.add(
-                        Meters.of(
-                            fiducial.distToCamera
-                        )
-                    );
-                }
+        RawFiducial[] fiducials = LimelightHelpers.getRawFiducials(LIMELIGHT_ID);
+        for (RawFiducial fiducial : fiducials) {
+            if (fiducial.id == TAG_ID) {
+                SeeingTag = true;
+                LimelightHelpers.setPriorityTagID(LIMELIGHT_ID, TAG_ID);
+            } else {
+                new BlipControllerCommand(CONTROLLER, 3);
             }
-        }
-
-        if (activeLimelights.size() > 0) {
-            int closestIndex = 0;
-            for (int i = 1; i < activeLimelightDistance.size(); i++) {
-                if (activeLimelightDistance.get(i).in(Meters) < activeLimelightDistance.get(closestIndex).in(Meters)) {
-                    closestIndex = i;
-                }
-            }
-
-            closestLimelightID = activeLimelights.get(closestIndex);
-
-            LimelightHelpers.SetFiducialIDFiltersOverride(
-                closestLimelightID,
-                new int[]{TAG_ID}
-            );
-
-            foundTag = true;
-        }else{
-            foundTag = false;
         }
 
         SmartDashboard.putBoolean(
-            "ApriltagAlignment/FoundTag", 
-            foundTag
+            "ApriltagAlignment/FoundTag",
+            SeeingTag
         );
-        SmartDashboard.putString(
-            "ApriltagAlignment/LimelightID", 
-            closestLimelightID
-        );
-        SmartDashboard.putNumber(
-            "ApriltagAlignment/LimelightDistance", 
-            closestDistance
-        );
+
+
     }
 
     @Override
     public void execute() {
-        // TODO: Alignment Logic
+        if (LimelightHelpers.getFiducialID(LIMELIGHT_ID) == TAG_ID) {
+
+            double[] targetPose = LimelightHelpers.getTargetPose_RobotSpace(LIMELIGHT_ID);
+
+            double currentStrafe = targetPose[0];   // Left/Right offset (meters)
+            double currentDistance = targetPose[1]; // Forward distance (meters)
+            double currentYaw = targetPose[5];      // Yaw Angle (degrees)
+
+            subsystem.drive(
+                new Translation2d(
+                    m_xController.calculate(currentDistance, TARGET_FORWARD.in(Meters)),
+                    m_yController.calculate(currentStrafe, TARGET_STRAFE.in(Meters))
+                ), 
+                m_yawController.calculate(currentYaw, TARGET_ANGLE.in(Degrees))
+            );
+        } else {
+            subsystem.drive(new Translation2d(0,0), 0);
+        }
     }
 
     @Override
@@ -175,7 +139,7 @@ public class TagAlignCommand extends Command {
 
     @Override
     public boolean isFinished() {
-        // TODO: Check if the robot is aligned with the target
+        // TODO: FINISHING LOGIC
         return false;
     }
 }
