@@ -59,16 +59,18 @@ public class TagAlignCommand extends Command {
     public final String LIMELIGHT_ID;
     public final XboxController CONTROLLER;
     
+    Boolean SeeingTag = false;
+
     public TagAlignCommand(SwerveSubsystem subsystem, Distance targetForward, Distance targetStrafe, int tagID, String LimelightID, XboxController Controller) {
         this.subsystem = subsystem;
         this.TAG_ID = tagID;
         m_limelightTable = NetworkTableInstance.getDefault().getTable("limelight");
         addRequirements(subsystem);
 
-        // Set tolerances to avoid jitter near the target
-        m_xController.setTolerance(AlignemntTolerance.FORWARD.in(Meters)); 
-        m_yController.setTolerance(AlignemntTolerance.STRAFE.in(Meters)); 
-        m_yawController.setTolerance(AlignemntTolerance.ROTATION.in(Degree));  
+
+        m_xController.setSetpoint(AlignemntTolerance.FORWARD.in(Meters)); 
+        m_yController.setSetpoint(AlignemntTolerance.STRAFE.in(Meters)); 
+        m_yawController.setSetpoint(AlignemntTolerance.ROTATION.in(Degree));  
 
         TARGET_FORWARD = targetForward;
         TARGET_STRAFE = targetStrafe;
@@ -86,7 +88,6 @@ public class TagAlignCommand extends Command {
         m_yController.reset();
         m_yawController.reset();
 
-        Boolean SeeingTag = false;
 
         RawFiducial[] fiducials = LimelightHelpers.getRawFiducials(LIMELIGHT_ID);
         for (RawFiducial fiducial : fiducials) {
@@ -108,22 +109,30 @@ public class TagAlignCommand extends Command {
 
     @Override
     public void execute() {
+        
         if (LimelightHelpers.getFiducialID(LIMELIGHT_ID) == TAG_ID) {
+
+            SeeingTag = true;
 
             double[] targetPose = LimelightHelpers.getTargetPose_RobotSpace(LIMELIGHT_ID);
 
-            double currentStrafe = targetPose[0];   // Left/Right offset (meters)
-            double currentDistance = targetPose[1]; // Forward distance (meters)
-            double currentYaw = targetPose[5];      // Yaw Angle (degrees)
+            if (targetPose.length < 6) { // Check that values actually got received. 
+                double currentStrafe = targetPose[0];   // Left/Right offset (meters)
+                double currentDistance = targetPose[1]; // Forward distance (meters)
+                double currentYaw = targetPose[5];      // Yaw Angle (degrees)
 
-            subsystem.drive(
-                new Translation2d(
-                    m_xController.calculate(currentDistance, TARGET_FORWARD.in(Meters)),
-                    m_yController.calculate(currentStrafe, TARGET_STRAFE.in(Meters))
-                ), 
-                m_yawController.calculate(currentYaw, TARGET_ANGLE.in(Degrees))
-            );
+                subsystem.drive(
+                    new Translation2d(
+                        m_xController.calculate(currentDistance, TARGET_FORWARD.in(Meters)),
+                        m_yController.calculate(currentStrafe, TARGET_STRAFE.in(Meters))
+                    ), 
+                    m_yawController.calculate(currentYaw, TARGET_ANGLE.in(Degrees))
+                );
+            }
+
         } else {
+            SeeingTag = false;
+
             subsystem.drive(new Translation2d(0,0), 0);
         }
     }
@@ -135,11 +144,15 @@ public class TagAlignCommand extends Command {
             new Translation2d(0,0),
             0
         );
+
+        new BlipControllerCommand(CONTROLLER, 1);
+
     }
 
     @Override
     public boolean isFinished() {
-        // TODO: FINISHING LOGIC
-        return false;
+        // TODO: Make sure setpoint isnt being reached during initialization. 
+        return !SeeingTag || (m_xController.atSetpoint() && m_yController.atSetpoint() && m_yawController.atSetpoint());
     }
 }
+    
