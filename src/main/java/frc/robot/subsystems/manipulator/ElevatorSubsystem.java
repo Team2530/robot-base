@@ -31,7 +31,7 @@ public class ElevatorSubsystem extends SubsystemBase {
     private final SparkFlex m_StarboardMotor;
     private final SparkClosedLoopController elevatorController; 
 
-    private Angle targetPosition;
+    private Distance targetHeight;
 
     public ElevatorSubsystem() {
         m_PortMotor = new SparkFlex(
@@ -79,31 +79,38 @@ public class ElevatorSubsystem extends SubsystemBase {
 
     @Override
     public void periodic() {
-        // TODO: Rotaiton to Height Math
-        Angle setPosition;
-        setPosition = targetPosition;
+       
 
-        elevatorController.setSetpoint(setPosition.in(Rotations), ControlType.kPosition);
+        Angle setPosition = 
+            Rotations.of(
+                targetHeight.in(Meters) 
+                *ElevatorConstants.MOTOR_ROTATIONS_PER_METER
+            );
+
+        elevatorController.setSetpoint(
+            setPosition.in(Rotations), 
+            ControlType.kPosition
+        );
 
         // TODO: Log more stuff
         SmartDashboard.putNumber(
-            "Vortex/targetVelocity",
+            "Elevator/targetPosition",
             setPosition.in(Rotations)
         );
         SmartDashboard.putNumber(
-            "Vortex/velocity",
+            "Elevator/velocity",
             m_PortMotor.getEncoder().getVelocity()
         );
         SmartDashboard.putNumber(
-            "Vortex/position",
+            "Elevator/position",
             m_PortMotor.getEncoder().getPosition()
         );
 
     }
 
 
-    public void setTargetPosition(double position) {
-        targetPosition = Rotations.of(position);
+    public void setTargetHeight(double height) {
+        targetHeight = Meters.of(height);
     }
 
 }
