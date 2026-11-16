@@ -16,6 +16,8 @@ import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Rotation3d;
+import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.numbers.N1;
@@ -60,6 +62,9 @@ import swervelib.parser.json.modules.ConversionFactorsJson;
 import swervelib.parser.json.modules.DriveConversionFactorsJson;
 import swervelib.telemetry.SwerveDriveTelemetry;
 import swervelib.telemetry.SwerveDriveTelemetry.TelemetryVerbosity;
+import gg.questnav.questnav.QuestNav;
+import gg.questnav.questnav.PoseFrame;
+import frc.robot.util.constants.DriveConstants.Quest;
 
 
 public class SwerveSubsystem extends SubsystemBase {
@@ -144,6 +149,18 @@ public class SwerveSubsystem extends SubsystemBase {
             this.gearRatio = gearRatio;
         }
     }
+
+    private final QuestNav questNav = new QuestNav();
+
+    // Quest offset from Robot Center
+    // X: Forward | Y: Left | Z: Up
+    private static final Transform3d ROBOT_TO_QUEST = 
+        new Transform3d(
+            Quest.X.in(Meters),
+            Quest.Y.in(Meters), 
+            Quest.Z.in(Meters), 
+            new Rotation3d()
+        );
 
     public SwerveSubsystem() {
         // instantiate yagsl library classes
@@ -387,6 +404,26 @@ public class SwerveSubsystem extends SubsystemBase {
         // this should be called every loop
         // [see](https://yet-another-software-suite.github.io/YAGSL/javadocs/swervelib/SwerveDrive.html#updateOdometry())
         swerveDrive.updateOdometry();
+        questNav.commandPeriodic();
+
+        if (questNav.isConnected()) {
+            for (PoseFrame frame : questNav.getAllUnreadPoseFrames()) {
+                if (frame.isTracking()) {
+                    Pose3d questRobotPose = frame.questPose3d()
+                        .transformBy(ROBOT_TO_QUEST.inverse());
+
+                    swerveDrive.addVisionMeasurement(
+                        questRobotPose.toPose2d(),
+                        frame.dataTimestamp(),
+                        VecBuilder.fill(
+                            0.02,
+                            0.02,
+                            0.035
+                        )
+                    );
+                }
+            }
+        }
 
         ArrayList<Reading> mt1Readings = RobotContainer.limelightSubsystem
             .getMT1Readings();
@@ -484,7 +521,7 @@ public class SwerveSubsystem extends SubsystemBase {
             );
         }
 
-
+        // ADD MT2 READINGS
         if (mt2Filtered.size() > 0) {
             // average the readings to get dissonance
             Translation2d averaged = new Translation2d();
@@ -518,30 +555,6 @@ public class SwerveSubsystem extends SubsystemBase {
 
             SmartDashboard.putNumber("Odometry/xDissonance", xDissonance);
             SmartDashboard.putNumber("Odometry/yDissonance", yDissonance);
-
-            // try to correct dissonance
-            for (Reading reading : mt1Readings) {
-                PoseEstimate estimate = reading.getEstimate();
-                double[] stddevs = reading.getStddevs();
-
-                if (
-                    estimate.tagCount >= 1
-                    && RobotContainer.swerveDriveSubsystem.getAngularVelocity()
-                        .lt(
-                            RadiansPerSecond.of(Math.PI)
-                        )
-                ) {
-                    swerveDrive.addVisionMeasurement(
-                        estimate.pose,
-                        estimate.timestampSeconds,
-                        VecBuilder.fill(
-                            999999,
-                            999999,
-                            stddevs[2]
-                        )
-                    );
-                }
-            }
             
             // Clamp TranslationDissonance to prevent over or underconfidence.
             double xTranslationDissonance = MathUtil.clamp(
@@ -560,12 +573,14 @@ public class SwerveSubsystem extends SubsystemBase {
                 PoseEstimate estimate = filtered.getEstimate();
                 double[] stddevs = filtered.getStddevs();
 
+                double questTrustScale = questNav.isTracking() ? 3.0 : 1.0;
+
                 swerveDrive.addVisionMeasurement(
                     estimate.pose,
                     estimate.timestampSeconds,
                     VecBuilder.fill(
-                        stddevs[0] * xTranslationDissonance,
-                        stddevs[1] * yTranslationDissonance,
+                        stddevs[0] * xTranslationDissonance * questTrustScale,
+                        stddevs[1] * yTranslationDissonance * questTrustScale,
                         999999 // stddevs[2] 
                     )
                 );
@@ -677,15 +692,7 @@ public class SwerveSubsystem extends SubsystemBase {
     public void resetOdometry(Pose2d pose) {
         RobotContainer.limelightSubsystem.setIMUModes(1);
         swerveDrive.resetOdometry(pose);
-        addVisionMeasurement(
-            pose, 
-            Timer.getTimestamp(), 
-            VecBuilder.fill(
-                0,
-                0,
-                0
-            ) 
-        );
+        questNav.setPose(new Pose3d(pose).transformBy(ROBOT_TO_QUEST));
         RobotContainer.limelightSubsystem.updatePositions();
     }
 

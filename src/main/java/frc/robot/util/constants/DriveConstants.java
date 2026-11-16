@@ -149,4 +149,10 @@ public final class DriveConstants {
             }
         }
     }
+
+    public static final class Quest {
+        public static final Distance X = Meters.of(0.3);
+        public static final Distance Y = Meters.of(0);
+        public static final Distance Z = Meters.of(0.5);
+    }
 }
