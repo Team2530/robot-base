@@ -30,7 +30,7 @@ public class ManipulatorConstants {
         public static final double kG = 0.15;
 
         public static final int CASCADE_FACTOR = 2; // TODO: Get This
-        public static final Distance PITCH_DIAMETER = Meters.of(0.0381); // TODO: Get This
+        public static final Distance PITCH_DIAMETER = Inches.of(1.202433586); // TODO: Get This
         public static final int GEARBOX_REDUCTION = 9;
 
         public static final double MOTOR_ROTATIONS_PER_METER = (
