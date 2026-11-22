@@ -11,16 +11,16 @@ public class ManipulatorConstants {
     public static final class ElevatorConstants {
 
         public static final class PortMotor {
-            public static final int CAN_ID = 15;
+            public static final int CAN_ID = 21;
             public static final boolean INVERTED = false;
         }
 
         public static final class StarboardMotor {
-            public static final int CAN_ID = 15;
-            public static final boolean INVERTED = false;
+            public static final int CAN_ID = 22;
+            public static final boolean INVERTED = true;
         }
 
-        public static final double kP = 0.05;
+        public static final double kP = 0.038;
         public static final double kI = 0;
         public static final double kD = 0;
 

@@ -31,7 +31,7 @@ public class ElevatorSubsystem extends SubsystemBase {
     private final SparkFlex m_StarboardMotor;
     private final SparkClosedLoopController elevatorController; 
 
-    private Distance targetHeight;
+    private Distance targetHeight = Meters.of(0);
 
     public ElevatorSubsystem() {
         m_PortMotor = new SparkFlex(
@@ -109,8 +109,8 @@ public class ElevatorSubsystem extends SubsystemBase {
     }
 
 
-    public void setTargetHeight(double height) {
-        targetHeight = Meters.of(height);
+    public void setTargetHeight(Distance height) {
+        targetHeight = height;
     }
 
 }

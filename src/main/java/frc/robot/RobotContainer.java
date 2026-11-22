@@ -46,6 +46,7 @@ import frc.robot.util.constants.DriveConstants;
 import frc.robot.subsystems.limelight.Limelight;
 import frc.robot.subsystems.limelight.LimelightSubsystem;
 import frc.robot.subsystems.drive.SwerveSubsystem;
+import frc.robot.subsystems.manipulator.ElevatorSubsystem;
 import frc.robot.util.homebrew.AllianceFlipUtil;
 import frc.robot.util.elastic.Elastic;
 import frc.robot.subsystems.util.PDHSubsystem;
@@ -89,6 +90,8 @@ public class RobotContainer {
         new LimelightSubsystem(
             LimelightConstants.limelightConfigs
         );
+
+    public static final ElevatorSubsystem elevatorSubsystem = new ElevatorSubsystem();
 
     /*
      * The container for the robot. Contains subsystems, OI devices, and commands.
@@ -206,6 +209,31 @@ public class RobotContainer {
             .onTrue(
                 new InstantCommand(() -> {
                     limelightSubsystem.captureRewinds(Seconds.of(10));
+                })
+            );
+
+        operatorXbox.x()
+            .onTrue(
+                new InstantCommand(() -> {
+                    elevatorSubsystem.setTargetHeight(Meters.of(0));
+                })
+            );
+        operatorXbox.y()
+            .onTrue(
+                new InstantCommand(() -> {
+                    elevatorSubsystem.setTargetHeight(Meters.of(0.33));
+                })
+            );
+        operatorXbox.b()
+            .onTrue(
+                new InstantCommand(() -> {
+                    elevatorSubsystem.setTargetHeight(Meters.of(0.66));
+                })
+            );
+        operatorXbox.a()
+            .onTrue(
+                new InstantCommand(() -> {
+                    elevatorSubsystem.setTargetHeight(Meters.of(1));
                 })
             );
     }
